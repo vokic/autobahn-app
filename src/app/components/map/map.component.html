@@ -1,0 +1,17 @@
+<!-- <div
+  class="map-container"
+  leaflet
+  [leafletOptions]="options"
+  (leafletMapReady)="onMapReady($event)"
+  (leafletClick)="mapClicked($event)"
+></div> -->
+
+<p class="text-center">{{ roadIds }}</p>
+
+<div
+  id="map"
+  class="map-container"
+  leaflet
+  [leafletOptions]="options"
+  [leafletLayersControl]="layersControl"
+></div>
