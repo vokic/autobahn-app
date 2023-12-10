@@ -43,6 +43,12 @@ export class RoadsService {
     );
   }
 
+  getRoadworkDetails(roadworkId: string): Observable<{ roadworkDetails: any }> {
+    return this.http.get<{ roadworkDetails: any[] }>(
+      this.apiUrl + `/details/roadworks/${roadworkId}`
+    );
+  }
+
   // getAllWebcams(roadId: string): Observable<{ roadworks: Roadworks[] }> {
   //   return this.http.get<{ roadworks: Roadworks[] }>(
   //     this.apiUrl + `/${roadId}/services/webcam`

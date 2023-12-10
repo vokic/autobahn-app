@@ -55,6 +55,7 @@
                 <tr mat-header-row *matHeaderRowDef="roadworksColumns"></tr>
                 <tr
                   mat-row
+                  (click)="onRowClicked(row)"
                   *matRowDef="let row; columns: roadworksColumns"
                 ></tr>
               </table>
@@ -136,13 +137,14 @@
       </div>
     </div>
   </div>
+  <!-- Map -->
   <div class="col-7">
     <div class="text-center p-3 border-round-xs h-full surface-100 font-bold">
       <div
         class="map-container"
         leaflet
         [leafletOptions]="options"
-        [leafletLayersControl]="layersControl"
+        leafletMap
       ></div>
     </div>
   </div>
