@@ -6,6 +6,7 @@
 
 @import "../node_modules/leaflet/dist/leaflet.css";
 
+@import "primeflex/themes/primeone-light.css";
 
 
 html, body { height: 100%; }

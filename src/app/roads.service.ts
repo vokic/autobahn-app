@@ -17,9 +17,49 @@ export class RoadsService {
     return this.http.get<{ roads: Roads[] }>(this.apiUrl);
   }
 
-  getAllRoadworks(roadId: string): Observable<{ roadworks: Roadworks[] }> {
-    return this.http.get<{ roadworks: Roadworks[] }>(
+  getAllRoadworks(roadId: string): Observable<{ roadworks: any[] }> {
+    return this.http.get<{ roadworks: any[] }>(
       this.apiUrl + `/${roadId}/services/roadworks`
     );
   }
+
+  getAllClosedRoads(roadId: string): Observable<{ closure: any }> {
+    return this.http.get<{ closure: any[] }>(
+      this.apiUrl + `/${roadId}/services/closure`
+    );
+  }
+
+  getAllWarnings(roadId: string): Observable<{ warning: any[] }> {
+    return this.http.get<{ warning: any[] }>(
+      this.apiUrl + `/${roadId}/services/warning`
+    );
+  }
+
+  getAllCharginsStations(
+    roadId: string
+  ): Observable<{ electric_charging_station: any[] }> {
+    return this.http.get<{ electric_charging_station: any[] }>(
+      this.apiUrl + `/${roadId}/services/electric_charging_station`
+    );
+  }
+
+  // getAllWebcams(roadId: string): Observable<{ roadworks: Roadworks[] }> {
+  //   return this.http.get<{ roadworks: Roadworks[] }>(
+  //     this.apiUrl + `/${roadId}/services/webcam`
+  //   );
+  // }
+
+  // getAllPakringAreas(roadId: string): Observable<{ roadworks: Roadworks[] }> {
+  //   return this.http.get<{ roadworks: Roadworks[] }>(
+  //     this.apiUrl + `/${roadId}/services/parking_lorry`
+  //   );
+  // }
+
+  // getAllCharginsStations(
+  //   roadId: string
+  // ): Observable<{ roadworks: Roadworks[] }> {
+  //   return this.http.get<{ roadworks: Roadworks[] }>(
+  //     this.apiUrl + `/${roadId}/services/electric_charging_station`
+  //   );
+  // }
 }

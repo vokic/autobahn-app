@@ -1,4 +1,162 @@
-<div class="">
+<div class="grid nested-grid h-full">
+  <div class="col-5">
+    <div class="grid">
+      <div class="col-12">
+        <div class="grid">
+          <div class="col">
+            <div class="text-center p-3 border-round-xs surface-100 font-bold">
+              <mat-form-field>
+                <mat-label>Select road</mat-label>
+                <mat-select
+                  [(ngModel)]="selectedRoad"
+                  (selectionChange)="onRoadSelectionChange()"
+                >
+                  <mat-option *ngFor="let road of roads" [value]="road">{{
+                    road
+                  }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+          <div class="col">
+            <div
+              class="text-center p-3 border-round-xs surface-100 h-7rem flex align-items-center justify-content-center"
+            >
+              <div *ngIf="selectedRoad">
+                <p class="">Selected Road: {{ selectedRoad }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="text-center p-3 border-round-xs surface-100 font-bold">
+          <mat-tab-group>
+            <!-- Roadworks -->
+            <mat-tab label="roadworks">
+              <table
+                mat-table
+                [dataSource]="roadworksData"
+                class="mat-elevation-z8"
+              >
+                <ng-container
+                  *ngFor="let column of roadworksColumns"
+                  [matColumnDef]="column"
+                >
+                  <th mat-header-cell *matHeaderCellDef>
+                    {{ column | titlecase }}
+                  </th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element[column] }}
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="roadworksColumns"></tr>
+                <tr
+                  mat-row
+                  *matRowDef="let row; columns: roadworksColumns"
+                ></tr>
+              </table>
+            </mat-tab>
+
+            <!-- Closures -->
+            <mat-tab label="closure">
+              <table
+                mat-table
+                [dataSource]="closureData"
+                class="mat-elevation-z8"
+              >
+                <ng-container
+                  *ngFor="let column of closureColumns"
+                  [matColumnDef]="column"
+                >
+                  <th mat-header-cell *matHeaderCellDef>
+                    {{ column | titlecase }}
+                  </th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element[column] }}
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="closureColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: closureColumns"></tr>
+              </table>
+            </mat-tab>
+
+            <!-- Warnings -->
+            <mat-tab label="warnings">
+              <table
+                mat-table
+                [dataSource]="warningsData"
+                class="mat-elevation-z8"
+              >
+                <ng-container
+                  *ngFor="let column of warningColumns"
+                  [matColumnDef]="column"
+                >
+                  <th mat-header-cell *matHeaderCellDef>
+                    {{ column | titlecase }}
+                  </th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element[column] }}
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="warningColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: warningColumns"></tr>
+              </table>
+            </mat-tab>
+
+            <!-- Charging stations -->
+            <mat-tab label="charging">
+              <table
+                mat-table
+                [dataSource]="chargingData"
+                class="mat-elevation-z8"
+              >
+                <ng-container
+                  *ngFor="let column of chargingColumns"
+                  [matColumnDef]="column"
+                >
+                  <th mat-header-cell *matHeaderCellDef>
+                    {{ column | titlecase }}
+                  </th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element[column] }}
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="chargingColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: chargingColumns"></tr>
+              </table>
+            </mat-tab>
+          </mat-tab-group>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-7">
+    <div class="text-center p-3 border-round-xs h-full surface-100 font-bold">
+      <div
+        class="map-container"
+        leaflet
+        [leafletOptions]="options"
+        [leafletLayersControl]="layersControl"
+      ></div>
+    </div>
+  </div>
+</div>
+
+<div class="container"></div>
+<!-- <div
+  class="map-container"
+  leaflet
+  [leafletOptions]="options"
+  [leafletLayersControl]="layersControl"
+></div> -->
+
+<!-- <div class="">
   <div class="row">
     <div class="col-12">
       <div class="text-center p-1 bg-blue-500 font-bold">
@@ -7,7 +165,7 @@
           <mat-select
             [formControl]="selectedRoadsControl"
             (selectionChange)="onRoadSelectionChange()"
-            multiple
+            single
           >
             <mat-select-trigger>
               {{ selectedRoadsControl.value?.[0] || ' ' }}
@@ -33,17 +191,16 @@
   <div class="row">
     <div class="col-12">
       <div class="text-center p-1 bg-blue-500 font-bold">
-        <div *ngIf="selectedRoadsControl && selectedRoadsControl.value">
-          <mat-chip
-            *ngFor="let road of selectedRoadsControl.value"
-            class="mr-2"
-          >
-            {{ road }}
-          </mat-chip>
-        </div>
-      </div>
+        <!-- <div *ngIf="selectedRoadsControl">
+          <h3>Selected Road(s):</h3>
+          <p>{{ selectedRoadsControl.value }}</p>
+        </div> -->
+<!-- <div *ngIf="selectedRoadsControl && selectedRoadsControl.value">
+  <mat-chip *ngFor="let road of selectedRoadsControl.value" class="mr-2"> -->
+<!-- {{ road }}
+  </mat-chip>
+</div> -->
+<!-- </div>
     </div>
   </div>
-</div>
-
-<app-map [roadIds]="selectedRoads"></app-map>
+</div> -->
