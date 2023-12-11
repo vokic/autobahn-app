@@ -167,12 +167,18 @@ export class AppComponent implements OnInit, AfterViewInit {
             iconSize: [38, 61],
             iconAnchor: [13, 41],
             iconUrl: 'assets/img/markers/marker-roadworks.svg',
-            shadowUrl: '',
           }),
         });
 
-        // Add the new marker to the array
+        // Add the new marker to the array and display details on click
         this.markers.push(newMarker);
+        newMarker.bindPopup(`
+        <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
+        <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
+        <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
+        <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
+        <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
+      `);
       }
 
       // Update the map with the markers
