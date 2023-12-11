@@ -2,10 +2,14 @@
   <div class="col-5">
     <div class="grid">
       <div class="col-12">
-        <div class="grid">
+        <div
+          class="grid surface-100 flex align-items-center justify-content-center"
+        >
           <div class="col">
-            <div class="text-center p-3 border-round-xs surface-100 font-bold">
-              <mat-form-field>
+            <div
+              class="border-round-xs surface-100 flex align-items-center justify-content-center p2-3"
+            >
+              <mat-form-field subscriptSizing="dynamic">
                 <mat-label>Select road</mat-label>
                 <mat-select
                   [(ngModel)]="selectedRoad"
@@ -20,7 +24,7 @@
           </div>
           <div class="col">
             <div
-              class="text-center p-3 border-round-xs surface-100 h-7rem flex align-items-center justify-content-center"
+              class="text-center border-round-xs surface-100 flex align-items-center justify-content-center"
             >
               <div *ngIf="selectedRoad">
                 <p class="">Selected Road: {{ selectedRoad }}</p>
@@ -29,7 +33,7 @@
           </div>
           <div class="col">
             <div
-              class="text-center p-3 border-round-xs surface-100 h-7rem flex align-items-center justify-content-center"
+              class="text-center border-round-xs surface-100 flex align-items-center justify-content-center"
             >
               <button
                 mat-flat-button
@@ -46,10 +50,14 @@
       </div>
 
       <div class="col-12">
-        <div class="text-center p-3 border-round-xs surface-100 font-bold">
+        <div class="text-center border-round-xs surface-100">
           <mat-tab-group>
             <!-- Roadworks -->
-            <mat-tab label="roadworks">
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <mat-icon fontIcon="handyman"></mat-icon>
+                <span class="ml-2">Roadworks</span>
+              </ng-template>
               <table
                 mat-table
                 [dataSource]="roadworksData"
@@ -76,10 +84,22 @@
                   *matRowDef="let row; columns: roadworksColumns"
                 ></tr>
               </table>
+              <mat-paginator
+                #roadworksPaginator
+                [pageSize]="5"
+                [pageSizeOptions]="[5, 8]"
+                showFirstLastButtons
+                showFirstLastButtons
+              ></mat-paginator>
             </mat-tab>
 
             <!-- Closures -->
-            <mat-tab label="closure">
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <mat-icon fontIcon="remove_road"></mat-icon>
+                <span class="ml-2">Closed roads</span>
+              </ng-template>
+
               <table
                 mat-table
                 [dataSource]="closureData"
@@ -100,10 +120,21 @@
                 <tr mat-header-row *matHeaderRowDef="closureColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: closureColumns"></tr>
               </table>
+              <mat-paginator
+                #closurePaginator
+                [pageSize]="5"
+                [pageSizeOptions]="[5, 8]"
+                showFirstLastButtons
+              ></mat-paginator>
             </mat-tab>
 
             <!-- Warnings -->
-            <mat-tab label="warnings">
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <mat-icon fontIcon="warning"></mat-icon>
+                <span class="ml-2">Warnings</span>
+              </ng-template>
+
               <table
                 mat-table
                 [dataSource]="warningsData"
@@ -124,10 +155,21 @@
                 <tr mat-header-row *matHeaderRowDef="warningColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: warningColumns"></tr>
               </table>
+              <mat-paginator
+                #warningsPaginator
+                [pageSize]="5"
+                [pageSizeOptions]="[5, 8]"
+                showFirstLastButtons
+              ></mat-paginator>
             </mat-tab>
 
             <!-- Charging stations -->
-            <mat-tab label="charging">
+            <mat-tab>
+              <ng-template mat-tab-label>
+                <mat-icon fontIcon="ev_station"></mat-icon>
+                <span class="ml-2">Charging stations</span>
+              </ng-template>
+
               <table
                 mat-table
                 [dataSource]="chargingData"
@@ -148,6 +190,12 @@
                 <tr mat-header-row *matHeaderRowDef="chargingColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: chargingColumns"></tr>
               </table>
+              <mat-paginator
+                #chargingPaginator
+                [pageSize]="5"
+                [pageSizeOptions]="[5, 8]"
+                showFirstLastButtons
+              ></mat-paginator>
             </mat-tab>
           </mat-tab-group>
         </div>
@@ -156,7 +204,7 @@
   </div>
   <!-- Map -->
   <div class="col-7">
-    <div class="text-center p-3 border-round-xs h-full surface-100 font-bold">
+    <div class="text-center border-round-xs h-full surface-100 font-bold">
       <div
         class="map-container"
         leaflet
@@ -167,7 +215,10 @@
   </div>
 </div>
 
-<div class="container"></div>
+<div class="grid nested-grid">
+  <!-- Your existing HTML code here -->
+</div>
+
 <!-- <div
   class="map-container"
   leaflet

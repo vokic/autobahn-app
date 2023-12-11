@@ -2,7 +2,6 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
-  OnChanges,
   OnInit,
   ViewChild,
 } from '@angular/core';
@@ -10,8 +9,8 @@ import { CommonModule } from '@angular/common';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { HttpClientModule } from '@angular/common/http';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import Roads from '../assets/types/roads.type';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+
 import { MatChipsModule } from '@angular/material/chips';
 import { MapComponent } from './components/map/map.component';
 import { RoadsService } from './roads.service';
@@ -23,6 +22,8 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import * as L from 'leaflet';
 import { MatIconModule } from '@angular/material/icon';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
@@ -44,15 +45,26 @@ import { MatButtonModule } from '@angular/material/button';
     MatTabsModule,
     MatButtonModule,
     MatIconModule,
+    MatMenuModule,
+    MatPaginatorModule,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
   roadworksData: MatTableDataSource<any> = new MatTableDataSource<any>([]);
   closureData: MatTableDataSource<any> = new MatTableDataSource<any>([]);
   warningsData: MatTableDataSource<any> = new MatTableDataSource<any>([]);
   chargingData: MatTableDataSource<any> = new MatTableDataSource<any>([]);
+
+  @ViewChild('roadworksPaginator', { static: true })
+  roadworksPaginator: MatPaginator | null = null;
+  @ViewChild('closurePaginator', { static: true })
+  closurePaginator: MatPaginator | null = null;
+  @ViewChild('warningsPaginator', { static: true })
+  warningsPaginator: MatPaginator | null = null;
+  @ViewChild('chargingPaginator', { static: true })
+  chargingPaginator: MatPaginator | null = null;
 
   headerCols: string[] = ['Title', 'Blocking', 'Subtitle', 'Start'];
 
@@ -63,7 +75,6 @@ export class AppComponent implements OnInit {
     'isBlocked',
     'subtitle',
     'startTimestamp',
-    'identifier',
   ];
 
   closureColumns: string[] = [
@@ -71,7 +82,6 @@ export class AppComponent implements OnInit {
     'isBlocked',
     'subtitle',
     'startTimestamp',
-    'identifier',
   ];
 
   warningColumns: string[] = [
@@ -79,18 +89,12 @@ export class AppComponent implements OnInit {
     'isBlocked',
     'subtitle',
     'startTimestamp',
-    'identifier',
   ];
 
-  chargingColumns: string[] = [
-    'title',
-    'isBlocked',
-    'subtitle',
-    'startTimestamp',
-    'identifier',
-  ];
+  chargingColumns: string[] = ['title', 'subtitle'];
 
-  roads: string[] = []; // Assuming roads is an array of strings
+  // Assuming roads is an array of strings
+  roads: string[] = [];
   selectedRoad: string | undefined;
 
   element: any;
@@ -111,6 +115,25 @@ export class AppComponent implements OnInit {
     });
   }
 
+  ngAfterViewInit() {
+    // Set the paginator for each table
+    if (this.roadworksPaginator) {
+      this.roadworksData.paginator = this.roadworksPaginator;
+    }
+
+    if (this.closurePaginator) {
+      this.closureData.paginator = this.closurePaginator;
+    }
+
+    if (this.warningsPaginator) {
+      this.warningsData.paginator = this.warningsPaginator;
+    }
+
+    if (this.chargingPaginator) {
+      this.chargingData.paginator = this.chargingPaginator;
+    }
+  }
+
   onRowClicked(row: any) {
     console.log('Row ID:', row.identifier);
     this.getRoadworkDetails(row.identifier);
@@ -124,6 +147,8 @@ export class AppComponent implements OnInit {
 
   getRoadworkDetails(roadworkId: any) {
     this.roadsService.getRoadworkDetails(roadworkId).subscribe((data: any) => {
+      console.log(data, 'single roadwork details');
+
       const coordinates: LatLngTuple = [
         parseFloat(data.coordinate.lat),
         parseFloat(data.coordinate.long),
@@ -139,9 +164,9 @@ export class AppComponent implements OnInit {
         // Create a new marker
         const newMarker = marker(coordinates, {
           icon: icon({
-            iconSize: [25, 41],
+            iconSize: [38, 61],
             iconAnchor: [13, 41],
-            iconUrl: 'assets/img/markers/marker-roadworks.png',
+            iconUrl: 'assets/img/markers/marker-roadworks.svg',
             shadowUrl: '',
           }),
         });
@@ -174,7 +199,7 @@ export class AppComponent implements OnInit {
 
   // Define our base layers so we can reference them multiple times
   streetMaps = tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    detectRetina: true,
+    detectRetina: false,
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   });
@@ -201,7 +226,14 @@ export class AppComponent implements OnInit {
   private getAllRoadworks(selectedRoad: string) {
     this.roadsService.getAllRoadworks(selectedRoad).subscribe((data: any) => {
       this.roadworksData.data = data.roadworks;
-      //console.log(data);
+
+      // Update isBlocked property to 'YES' or 'NO'
+      this.roadworksData.data.forEach((roadwork: any) => {
+        roadwork.isBlocked = roadwork.isBlocked ? 'NO' : 'YES';
+      });
+
+      // Log the updated data
+      console.log(this.roadworksData.data);
     });
   }
 
@@ -209,6 +241,9 @@ export class AppComponent implements OnInit {
     this.roadsService.getAllClosedRoads(selectedRoad).subscribe((data: any) => {
       this.closureData.data = data.closure;
       //console.log(data, 'closure data');
+      this.closureData.data.forEach((closure: any) => {
+        closure.isBlocked = closure.isBlocked ? 'NO' : 'YES';
+      });
     });
   }
 
@@ -216,12 +251,16 @@ export class AppComponent implements OnInit {
     this.roadsService.getAllWarnings(selectedRoad).subscribe((data) => {
       this.warningsData.data = data.warning;
       //console.log(data, 'reports data');
+      this.warningsData.data.forEach((warning: any) => {
+        warning.isBlocked = warning.isBlocked ? 'NO' : 'YES';
+      });
     });
   }
 
   private getAllCharginsStations(selectedRoad: string) {
     this.roadsService.getAllCharginsStations(selectedRoad).subscribe((data) => {
       this.chargingData.data = data.electric_charging_station;
+
       //console.log(data, 'charging data');
     });
   }
