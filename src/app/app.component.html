@@ -27,6 +27,21 @@
               </div>
             </div>
           </div>
+          <div class="col">
+            <div
+              class="text-center p-3 border-round-xs surface-100 h-7rem flex align-items-center justify-content-center"
+            >
+              <button
+                mat-flat-button
+                color="warn"
+                (click)="clearMarkers([51.1657, 10.4515])"
+                [disabled]="!markers.length"
+              >
+                <mat-icon>wrong_location</mat-icon>
+                Clear
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -53,7 +68,9 @@
                 </ng-container>
 
                 <tr mat-header-row *matHeaderRowDef="roadworksColumns"></tr>
+
                 <tr
+                  class="cursor-pointer"
                   mat-row
                   (click)="onRowClicked(row)"
                   *matRowDef="let row; columns: roadworksColumns"

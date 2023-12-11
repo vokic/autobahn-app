@@ -22,6 +22,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import * as L from 'leaflet';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-root',
@@ -40,6 +42,8 @@ import * as L from 'leaflet';
     MatInputModule,
     MatTableModule,
     MatTabsModule,
+    MatButtonModule,
+    MatIconModule,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
@@ -52,7 +56,7 @@ export class AppComponent implements OnInit {
 
   headerCols: string[] = ['Title', 'Blocking', 'Subtitle', 'Start'];
 
-  markers: any[] = []; // Array to store markers
+  markers: any[] = [];
 
   roadworksColumns: string[] = [
     'title',
@@ -112,6 +116,12 @@ export class AppComponent implements OnInit {
     this.getRoadworkDetails(row.identifier);
   }
 
+  //Clear markers from map
+  clearMarkers(defaultCoordinates: LatLngTuple): void {
+    this.markers = [];
+    this.updateMap();
+  }
+
   getRoadworkDetails(roadworkId: any) {
     this.roadsService.getRoadworkDetails(roadworkId).subscribe((data: any) => {
       const coordinates: LatLngTuple = [
@@ -131,10 +141,8 @@ export class AppComponent implements OnInit {
           icon: icon({
             iconSize: [25, 41],
             iconAnchor: [13, 41],
-            iconUrl:
-              'https://unpkg.com/leaflet@1.5.1/dist/images/marker-icon.png',
-            shadowUrl:
-              'https://unpkg.com/leaflet@1.5.1/dist/images/marker-shadow.png',
+            iconUrl: 'assets/img/markers/marker-roadworks.png',
+            shadowUrl: '',
           }),
         });
 
