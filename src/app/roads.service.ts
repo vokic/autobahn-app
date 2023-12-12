@@ -49,6 +49,24 @@ export class RoadsService {
     );
   }
 
+  getClosingsDetails(closureId: string): Observable<{ closureDetails: any }> {
+    return this.http.get<{ closureDetails: any[] }>(
+      this.apiUrl + `/details/closure/${closureId}`
+    );
+  }
+
+  getWarningsDetails(warningId: string): Observable<{ warningDetails: any }> {
+    return this.http.get<{ warningDetails: any[] }>(
+      this.apiUrl + `/details/warning/${warningId}`
+    );
+  }
+
+  getChargingDetails(stationId: string): Observable<{ stationDetails: any }> {
+    return this.http.get<{ stationDetails: any[] }>(
+      this.apiUrl + `/details/electric_charging_station/${stationId}`
+    );
+  }
+
   // getAllWebcams(roadId: string): Observable<{ roadworks: Roadworks[] }> {
   //   return this.http.get<{ roadworks: Roadworks[] }>(
   //     this.apiUrl + `/${roadId}/services/webcam`

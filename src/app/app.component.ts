@@ -134,9 +134,24 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   }
 
-  onRowClicked(row: any) {
+  onRoadworksRowClicked(row: any) {
     console.log('Row ID:', row.identifier);
     this.getRoadworkDetails(row.identifier);
+  }
+
+  onClosureRowClicked(row: any) {
+    console.log('Row ID:', row.identifier);
+    this.getClosingsDetails(row.identifier);
+  }
+
+  onWarningRowClicked(row: any) {
+    console.log('Row ID:', row.identifier);
+    this.getWarningsDetails(row.identifier);
+  }
+
+  onChargingRowClicked(row: any) {
+    console.log('Row ID:', row.identifier);
+    this.getChargingDetails(row.identifier);
   }
 
   //Clear markers from map
@@ -167,6 +182,129 @@ export class AppComponent implements OnInit, AfterViewInit {
             iconSize: [38, 61],
             iconAnchor: [13, 41],
             iconUrl: 'assets/img/markers/marker-roadworks.svg',
+          }),
+        });
+
+        // Add the new marker to the array and display details on click
+        this.markers.push(newMarker);
+        newMarker.bindPopup(`
+        <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
+        <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
+        <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
+        <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
+        <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
+      `);
+      }
+
+      // Update the map with the markers
+      this.updateMap();
+    });
+  }
+
+  getClosingsDetails(closureId: any) {
+    this.roadsService.getClosingsDetails(closureId).subscribe((data: any) => {
+      console.log(data, 'single closings details');
+
+      const coordinates: LatLngTuple = [
+        parseFloat(data.coordinate.lat),
+        parseFloat(data.coordinate.long),
+      ];
+
+      // Check if a marker with the same coordinates already exists
+      const existingMarker = this.findExistingMarker(coordinates);
+
+      if (existingMarker) {
+        // Update the position of the existing marker if needed
+        existingMarker.setLatLng(coordinates);
+      } else {
+        // Create a new marker
+        const newMarker = marker(coordinates, {
+          icon: icon({
+            iconSize: [38, 61],
+            iconAnchor: [13, 41],
+            iconUrl: 'assets/img/markers/marker-closure.svg',
+          }),
+        });
+
+        // Add the new marker to the array and display details on click
+        this.markers.push(newMarker);
+        newMarker.bindPopup(`
+        <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
+        <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
+        <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
+        <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
+        <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
+      `);
+      }
+
+      // Update the map with the markers
+      this.updateMap();
+    });
+  }
+
+  getWarningsDetails(warningId: any) {
+    this.roadsService.getWarningsDetails(warningId).subscribe((data: any) => {
+      console.log(data, 'single closings details');
+
+      const coordinates: LatLngTuple = [
+        parseFloat(data.coordinate.lat),
+        parseFloat(data.coordinate.long),
+      ];
+
+      // Check if a marker with the same coordinates already exists
+      const existingMarker = this.findExistingMarker(coordinates);
+
+      if (existingMarker) {
+        // Update the position of the existing marker if needed
+        existingMarker.setLatLng(coordinates);
+      } else {
+        // Create a new marker
+        const newMarker = marker(coordinates, {
+          icon: icon({
+            iconSize: [38, 61],
+            iconAnchor: [13, 41],
+            iconUrl: 'assets/img/markers/marker-warning.svg',
+          }),
+        });
+
+        // Add the new marker to the array and display details on click
+        this.markers.push(newMarker);
+        newMarker.bindPopup(`
+        <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
+        <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
+        <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
+        <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
+        <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
+      `);
+      }
+
+      // Update the map with the markers
+      this.updateMap();
+    });
+  }
+
+  getChargingDetails(chargingId: any) {
+    this.roadsService.getChargingDetails(chargingId).subscribe((data: any) => {
+      console.log(data, 'single closings details');
+
+      const coordinates: LatLngTuple = [
+        parseFloat(data.coordinate.lat),
+        parseFloat(data.coordinate.long),
+      ];
+
+      // Check if a marker with the same coordinates already exists
+      const existingMarker = this.findExistingMarker(coordinates);
+
+      if (existingMarker) {
+        // Update the position of the existing marker if needed
+        existingMarker.setLatLng(coordinates);
+      } else {
+        // Create a new marker
+        const newMarker = marker(coordinates, {
+          icon: icon({
+            iconSize: [38, 61],
+            iconAnchor: [13, 41],
+            iconUrl: 'assets/img/markers/marker-charging.svg',
           }),
         });
 

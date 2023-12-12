@@ -52,7 +52,7 @@
       <div class="col-12">
         <div class="text-center border-round-xs surface-100">
           <mat-tab-group>
-            <!-- Roadworks -->
+            <!-- ROADWORKS -->
             <mat-tab>
               <ng-template mat-tab-label>
                 <mat-icon fontIcon="handyman"></mat-icon>
@@ -80,7 +80,7 @@
                 <tr
                   class="cursor-pointer"
                   mat-row
-                  (click)="onRowClicked(row)"
+                  (click)="onRoadworksRowClicked(row)"
                   *matRowDef="let row; columns: roadworksColumns"
                 ></tr>
               </table>
@@ -93,7 +93,7 @@
               ></mat-paginator>
             </mat-tab>
 
-            <!-- Closures -->
+            <!-- CLOSURES -->
             <mat-tab>
               <ng-template mat-tab-label>
                 <mat-icon fontIcon="remove_road"></mat-icon>
@@ -118,7 +118,11 @@
                 </ng-container>
 
                 <tr mat-header-row *matHeaderRowDef="closureColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: closureColumns"></tr>
+                <tr
+                  mat-row
+                  (click)="onClosureRowClicked(row)"
+                  *matRowDef="let row; columns: closureColumns"
+                ></tr>
               </table>
               <mat-paginator
                 #closurePaginator
@@ -128,7 +132,7 @@
               ></mat-paginator>
             </mat-tab>
 
-            <!-- Warnings -->
+            <!-- WARNINGS -->
             <mat-tab>
               <ng-template mat-tab-label>
                 <mat-icon fontIcon="warning"></mat-icon>
@@ -153,7 +157,11 @@
                 </ng-container>
 
                 <tr mat-header-row *matHeaderRowDef="warningColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: warningColumns"></tr>
+                <tr
+                  mat-row
+                  (click)="onWarningRowClicked(row)"
+                  *matRowDef="let row; columns: warningColumns"
+                ></tr>
               </table>
               <mat-paginator
                 #warningsPaginator
@@ -163,7 +171,7 @@
               ></mat-paginator>
             </mat-tab>
 
-            <!-- Charging stations -->
+            <!-- CHARGING STATIONS -->
             <mat-tab>
               <ng-template mat-tab-label>
                 <mat-icon fontIcon="ev_station"></mat-icon>
@@ -188,7 +196,11 @@
                 </ng-container>
 
                 <tr mat-header-row *matHeaderRowDef="chargingColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: chargingColumns"></tr>
+                <tr
+                  mat-row
+                  (click)="onChargingRowClicked(row)"
+                  *matRowDef="let row; columns: chargingColumns"
+                ></tr>
               </table>
               <mat-paginator
                 #chargingPaginator
