@@ -333,18 +333,29 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   // Define our base layers so we can reference them multiple times
-  streetMaps = tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    detectRetina: false,
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  });
+  streetMaps = tileLayer(
+    'https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=onreaGxJVRblaqf1qWWa',
+    {
+      detectRetina: false,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }
+  );
 
   germany = L.layerGroup([]);
+
+  //Define map size, prevent panning out
+  germanyBounds = L.latLngBounds(
+    L.latLng(47.2701, 5.8663), // Southwest corner of Germany
+    L.latLng(55.0585, 15.0419) // Northeast corner of Germany
+  );
 
   options = {
     layers: [this.streetMaps, this.germany],
     zoom: 7,
+    minZoom: 7,
     center: latLng([51.1657, 10.4515]),
+    maxBounds: this.germanyBounds,
   };
 
   onRoadSelectionChange() {
