@@ -1,5 +1,5 @@
 <div class="grid nested-grid h-full">
-  <div class="col-5">
+  <div class="col-6">
     <div class="grid">
       <div class="col-12">
         <div
@@ -27,7 +27,10 @@
               class="text-center border-round-xs surface-100 flex align-items-center justify-content-center"
             >
               <div *ngIf="selectedRoad">
-                <p class="">Selected Road: {{ selectedRoad }}</p>
+                <p class="">
+                  Selected Road:
+                  <span class="font-bold">{{ selectedRoad }}</span>
+                </p>
               </div>
             </div>
           </div>
@@ -215,7 +218,7 @@
     </div>
   </div>
   <!-- Map -->
-  <div class="col-7">
+  <div class="col-6">
     <div class="text-center border-round-xs h-full surface-100 font-bold">
       <div
         class="map-container"

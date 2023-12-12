@@ -1,16 +1,9 @@
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-
 import { MatChipsModule } from '@angular/material/chips';
 import { MapComponent } from './components/map/map.component';
 import { RoadsService } from './roads.service';
@@ -25,6 +18,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
+import Roads from '../assets/types/roads.type';
 
 @Component({
   selector: 'app-root',
@@ -94,15 +88,12 @@ export class AppComponent implements OnInit, AfterViewInit {
   chargingColumns: string[] = ['title', 'subtitle'];
 
   // Assuming roads is an array of strings
-  roads: string[] = [];
+  roads: Roads[] = [];
   selectedRoad: string | undefined;
 
   element: any;
 
-  constructor(
-    private roadsService: RoadsService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  constructor(private roadsService: RoadsService) {}
 
   ngOnInit() {
     this.roadsService.getAllRoads().subscribe((data: any) => {
@@ -160,7 +151,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.updateMap();
   }
 
-  getRoadworkDetails(roadworkId: any) {
+  getRoadworkDetails(roadworkId: string) {
     this.roadsService.getRoadworkDetails(roadworkId).subscribe((data: any) => {
       console.log(data, 'single roadwork details');
 
@@ -188,12 +179,12 @@ export class AppComponent implements OnInit, AfterViewInit {
         // Add the new marker to the array and display details on click
         this.markers.push(newMarker);
         newMarker.bindPopup(`
-        <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
-        <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
-        <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
-        <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
-        <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
-      `);
+          <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
+          <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
+          <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
+          <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
+          <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
+        `);
       }
 
       // Update the map with the markers
@@ -201,7 +192,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     });
   }
 
-  getClosingsDetails(closureId: any) {
+  getClosingsDetails(closureId: string) {
     this.roadsService.getClosingsDetails(closureId).subscribe((data: any) => {
       console.log(data, 'single closings details');
 
@@ -242,7 +233,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     });
   }
 
-  getWarningsDetails(warningId: any) {
+  getWarningsDetails(warningId: string) {
     this.roadsService.getWarningsDetails(warningId).subscribe((data: any) => {
       console.log(data, 'single closings details');
 
@@ -283,7 +274,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     });
   }
 
-  getChargingDetails(chargingId: any) {
+  getChargingDetails(chargingId: string) {
     this.roadsService.getChargingDetails(chargingId).subscribe((data: any) => {
       console.log(data, 'single closings details');
 
@@ -352,7 +343,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   options = {
     layers: [this.streetMaps, this.germany],
-    zoom: 6,
+    zoom: 7,
     center: latLng([51.1657, 10.4515]),
   };
 

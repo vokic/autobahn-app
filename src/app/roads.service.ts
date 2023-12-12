@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import Roads from '../assets/types/roads.type';
-import Roadworks from '../assets/types/roadworks.type';
+import BaseObject from '../assets/types/base-object.type';
 
 @Injectable({
   providedIn: 'root',
@@ -43,26 +43,34 @@ export class RoadsService {
     );
   }
 
-  getRoadworkDetails(roadworkId: string): Observable<{ roadworkDetails: any }> {
-    return this.http.get<{ roadworkDetails: any[] }>(
+  getRoadworkDetails(
+    roadworkId: string
+  ): Observable<{ roadworkDetails: BaseObject }> {
+    return this.http.get<{ roadworkDetails: BaseObject }>(
       this.apiUrl + `/details/roadworks/${roadworkId}`
     );
   }
 
-  getClosingsDetails(closureId: string): Observable<{ closureDetails: any }> {
-    return this.http.get<{ closureDetails: any[] }>(
+  getClosingsDetails(
+    closureId: string
+  ): Observable<{ closureDetails: BaseObject }> {
+    return this.http.get<{ closureDetails: BaseObject }>(
       this.apiUrl + `/details/closure/${closureId}`
     );
   }
 
-  getWarningsDetails(warningId: string): Observable<{ warningDetails: any }> {
-    return this.http.get<{ warningDetails: any[] }>(
+  getWarningsDetails(
+    warningId: string
+  ): Observable<{ warningDetails: BaseObject }> {
+    return this.http.get<{ warningDetails: BaseObject }>(
       this.apiUrl + `/details/warning/${warningId}`
     );
   }
 
-  getChargingDetails(stationId: string): Observable<{ stationDetails: any }> {
-    return this.http.get<{ stationDetails: any[] }>(
+  getChargingDetails(
+    stationId: string
+  ): Observable<{ stationDetails: BaseObject }> {
+    return this.http.get<{ stationDetails: BaseObject }>(
       this.apiUrl + `/details/electric_charging_station/${stationId}`
     );
   }
