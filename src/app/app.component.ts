@@ -19,6 +19,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import Roads from '../assets/types/roads.type';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-root',
@@ -41,6 +42,7 @@ import Roads from '../assets/types/roads.type';
     MatIconModule,
     MatMenuModule,
     MatPaginatorModule,
+    MatCheckboxModule,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
@@ -61,6 +63,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   chargingPaginator: MatPaginator | null = null;
 
   headerCols: string[] = ['Title', 'Blocking', 'Subtitle', 'Start'];
+
+  clickedRoadworkRows = new Set<any>();
+  clickedClosureRows = new Set<any>();
+  clickedWarningRows = new Set<any>();
+  clickedChargingRows = new Set<any>();
 
   markers: any[] = [];
 
@@ -87,11 +94,12 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   chargingColumns: string[] = ['title', 'subtitle'];
 
-  // Assuming roads is an array of strings
   roads: Roads[] = [];
   selectedRoad: string | undefined;
 
   element: any;
+
+  isRowClicked: boolean = true;
 
   constructor(private roadsService: RoadsService) {}
 
@@ -126,29 +134,74 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   onRoadworksRowClicked(row: any) {
-    console.log('Row ID:', row.identifier);
-    this.getRoadworkDetails(row.identifier);
+    if (this.clickedRoadworkRows.has(row)) {
+      this.clickedRoadworkRows.delete(row);
+      this.removeMarker(row.identifier);
+    } else {
+      this.clickedRoadworkRows.add(row);
+      this.getRoadworkDetails(row.identifier);
+    }
   }
 
   onClosureRowClicked(row: any) {
-    console.log('Row ID:', row.identifier);
-    this.getClosingsDetails(row.identifier);
+    if (this.clickedClosureRows.has(row)) {
+      this.clickedClosureRows.delete(row);
+
+      this.removeMarker(row.identifier);
+    } else {
+      this.clickedClosureRows.add(row);
+      this.getClosingsDetails(row.identifier);
+    }
   }
 
   onWarningRowClicked(row: any) {
-    console.log('Row ID:', row.identifier);
-    this.getWarningsDetails(row.identifier);
+    if (this.clickedWarningRows.has(row)) {
+      this.clickedWarningRows.delete(row);
+      this.removeMarker(row.identifier);
+    } else {
+      this.clickedWarningRows.add(row);
+      this.getWarningsDetails(row.identifier);
+    }
   }
 
   onChargingRowClicked(row: any) {
-    console.log('Row ID:', row.identifier);
-    this.getChargingDetails(row.identifier);
+    if (this.clickedChargingRows.has(row)) {
+      this.clickedChargingRows.delete(row);
+      this.removeMarker(row.identifier);
+    } else {
+      this.clickedChargingRows.add(row);
+      this.getChargingDetails(row.identifier);
+    }
   }
 
   //Clear markers from map
   clearMarkers(defaultCoordinates: LatLngTuple): void {
     this.markers = [];
+
+    //Clear table selection on clear markers
+    this.clickedChargingRows.clear();
+    this.clickedWarningRows.clear();
+    this.clickedClosureRows.clear();
+    this.clickedRoadworkRows.clear();
+
     this.updateMap();
+  }
+
+  removeMarker(roadworkId: string) {
+    console.log('Roadwork ID to remove:', roadworkId);
+
+    // Identify the marker in the array
+    const markerIndex = this.markers.findIndex(
+      (marker) => L.stamp(marker) === parseInt(roadworkId)
+    );
+
+    if (markerIndex) {
+      // Remove the marker from the Leaflet layer group
+      const removedMarker = this.markers.splice(markerIndex, 1)[0];
+      this.germany.removeLayer(removedMarker);
+
+      this.updateMap();
+    }
   }
 
   getRoadworkDetails(roadworkId: string) {
@@ -179,9 +232,12 @@ export class AppComponent implements OnInit, AfterViewInit {
         // Add the new marker to the array and display details on click
         this.markers.push(newMarker);
         newMarker.bindPopup(`
+          <img src="assets/img/icons/roadworks-icon.svg">
+          <hr>
           <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
           <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
           <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
+          <hr>
           <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
           <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
         `);
@@ -220,9 +276,12 @@ export class AppComponent implements OnInit, AfterViewInit {
         // Add the new marker to the array and display details on click
         this.markers.push(newMarker);
         newMarker.bindPopup(`
+        <img src="assets/img/icons/closure-icon.svg">
+        <hr>
         <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
         <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
         <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
+        <hr>
         <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
         <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
       `);
@@ -261,9 +320,12 @@ export class AppComponent implements OnInit, AfterViewInit {
         // Add the new marker to the array and display details on click
         this.markers.push(newMarker);
         newMarker.bindPopup(`
+        <img src="assets/img/icons/warning-icon.svg">
+        <hr>
         <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
         <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
         <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
+        <hr>
         <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
         <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
       `);
@@ -302,9 +364,12 @@ export class AppComponent implements OnInit, AfterViewInit {
         // Add the new marker to the array and display details on click
         this.markers.push(newMarker);
         newMarker.bindPopup(`
+        <img src="assets/img/icons/charging-icon.svg">
+        <hr>
         <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
         <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
         <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
+        <hr>
         <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
         <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
       `);
@@ -352,8 +417,8 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   options = {
     layers: [this.streetMaps, this.germany],
-    zoom: 7,
-    minZoom: 7,
+    zoom: 6,
+    minZoom: 6,
     center: latLng([51.1657, 10.4515]),
     maxBounds: this.germanyBounds,
   };

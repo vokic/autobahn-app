@@ -45,7 +45,7 @@
                 [disabled]="!markers.length"
               >
                 <mat-icon>wrong_location</mat-icon>
-                Clear
+                Clear all markers
               </button>
             </div>
           </div>
@@ -84,6 +84,7 @@
                   class="cursor-pointer"
                   mat-row
                   (click)="onRoadworksRowClicked(row)"
+                  [class.demo-row-is-clicked]="clickedRoadworkRows.has(row)"
                   *matRowDef="let row; columns: roadworksColumns"
                 ></tr>
               </table>
@@ -124,6 +125,7 @@
                 <tr
                   mat-row
                   (click)="onClosureRowClicked(row)"
+                  [class.demo-row-is-clicked]="clickedClosureRows.has(row)"
                   *matRowDef="let row; columns: closureColumns"
                 ></tr>
               </table>
@@ -163,6 +165,7 @@
                 <tr
                   mat-row
                   (click)="onWarningRowClicked(row)"
+                  [class.demo-row-is-clicked]="clickedWarningRows.has(row)"
                   *matRowDef="let row; columns: warningColumns"
                 ></tr>
               </table>
@@ -202,6 +205,7 @@
                 <tr
                   mat-row
                   (click)="onChargingRowClicked(row)"
+                  [class.demo-row-is-clicked]="clickedChargingRows.has(row)"
                   *matRowDef="let row; columns: chargingColumns"
                 ></tr>
               </table>
