@@ -10,7 +10,7 @@
               class="border-round-xs surface-100 flex align-items-center justify-content-center p2-3"
             >
               <mat-form-field subscriptSizing="dynamic">
-                <mat-label>Select road</mat-label>
+                <mat-label>Select highway</mat-label>
                 <mat-select
                   [(ngModel)]="selectedRoad"
                   (selectionChange)="onRoadSelectionChange()"
@@ -19,6 +19,15 @@
                     road
                   }}</mat-option>
                 </mat-select>
+                <button
+                  mat-icon-button
+                  matSuffix
+                  color="warn"
+                  *ngIf="selectedRoad"
+                  (click)="clearSelection()"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
               </mat-form-field>
             </div>
           </div>
@@ -28,8 +37,12 @@
             >
               <div *ngIf="selectedRoad">
                 <p class="">
-                  Selected Road:
-                  <span class="font-bold">{{ selectedRoad }}</span>
+                  Selected highway:
+                  <!-- <span class="font-bold">{{ selectedRoad }}</span> -->
+                  <button mat-flat-button [style.background]="'#0652DD'">
+                    <!-- <mat-icon [style.color]="'white'">shield</mat-icon> -->
+                    <h3 [style.color]="'white'">{{ selectedRoad }}</h3>
+                  </button>
                 </p>
               </div>
             </div>
@@ -41,7 +54,7 @@
               <button
                 mat-flat-button
                 color="warn"
-                (click)="clearMarkers([51.1657, 10.4515])"
+                (click)="clearMarkers()"
                 [disabled]="!markers.length"
               >
                 <mat-icon>wrong_location</mat-icon>
@@ -83,9 +96,11 @@
                 <tr
                   class="cursor-pointer"
                   mat-row
-                  (click)="onRoadworksRowClicked(row)"
-                  [class.demo-row-is-clicked]="clickedRoadworkRows.has(row)"
-                  *matRowDef="let row; columns: roadworksColumns"
+                  (click)="onRoadworksRowClicked(rowRoadworks)"
+                  [class.demo-row-is-clicked]="
+                    clickedRoadworkRows.has(rowRoadworks)
+                  "
+                  *matRowDef="let rowRoadworks; columns: roadworksColumns"
                 ></tr>
               </table>
               <mat-paginator
@@ -123,10 +138,13 @@
 
                 <tr mat-header-row *matHeaderRowDef="closureColumns"></tr>
                 <tr
+                  class="cursor-pointer"
                   mat-row
-                  (click)="onClosureRowClicked(row)"
-                  [class.demo-row-is-clicked]="clickedClosureRows.has(row)"
-                  *matRowDef="let row; columns: closureColumns"
+                  (click)="onClosureRowClicked(rowClosure)"
+                  [class.demo-row-is-clicked]="
+                    clickedClosureRows.has(rowClosure)
+                  "
+                  *matRowDef="let rowClosure; columns: closureColumns"
                 ></tr>
               </table>
               <mat-paginator
@@ -162,11 +180,15 @@
                 </ng-container>
 
                 <tr mat-header-row *matHeaderRowDef="warningColumns"></tr>
+
                 <tr
+                  class="cursor-pointer"
                   mat-row
-                  (click)="onWarningRowClicked(row)"
-                  [class.demo-row-is-clicked]="clickedWarningRows.has(row)"
-                  *matRowDef="let row; columns: warningColumns"
+                  (click)="onRoadworksRowClicked(rowWarnings)"
+                  [class.demo-row-is-clicked]="
+                    clickedWarningRows.has(rowWarnings)
+                  "
+                  *matRowDef="let rowWarnings; columns: warningColumns"
                 ></tr>
               </table>
               <mat-paginator
@@ -203,10 +225,13 @@
 
                 <tr mat-header-row *matHeaderRowDef="chargingColumns"></tr>
                 <tr
+                  class="cursor-pointer"
                   mat-row
-                  (click)="onChargingRowClicked(row)"
-                  [class.demo-row-is-clicked]="clickedChargingRows.has(row)"
-                  *matRowDef="let row; columns: chargingColumns"
+                  (click)="onChargingRowClicked(rowCharging)"
+                  [class.demo-row-is-clicked]="
+                    clickedChargingRows.has(rowCharging)
+                  "
+                  *matRowDef="let rowCharging; columns: chargingColumns"
                 ></tr>
               </table>
               <mat-paginator

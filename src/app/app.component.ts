@@ -21,6 +21,16 @@ import { MatButtonModule } from '@angular/material/button';
 import Roads from '../assets/types/roads.type';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
+class CustomMarker extends L.Marker {
+  constructor(latlng: L.LatLngExpression, options?: CustomMarkerOptions) {
+    super(latlng, options);
+  }
+}
+
+interface CustomMarkerOptions extends L.MarkerOptions {
+  identifier?: string;
+}
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -95,7 +105,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   chargingColumns: string[] = ['title', 'subtitle'];
 
   roads: Roads[] = [];
-  selectedRoad: string | undefined;
+  selectedRoad: string | null = null;
 
   element: any;
 
@@ -133,49 +143,49 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   }
 
-  onRoadworksRowClicked(row: any) {
-    if (this.clickedRoadworkRows.has(row)) {
-      this.clickedRoadworkRows.delete(row);
-      this.removeMarker(row.identifier);
+  onRoadworksRowClicked(rowRoadworks: any) {
+    if (this.clickedRoadworkRows.has(rowRoadworks)) {
+      this.clickedRoadworkRows.delete(rowRoadworks);
+      this.removeRoadworksMarker(rowRoadworks.identifier);
     } else {
-      this.clickedRoadworkRows.add(row);
-      this.getRoadworkDetails(row.identifier);
+      this.clickedRoadworkRows.add(rowRoadworks);
+      this.getRoadworkDetails(rowRoadworks.identifier);
     }
   }
 
-  onClosureRowClicked(row: any) {
-    if (this.clickedClosureRows.has(row)) {
-      this.clickedClosureRows.delete(row);
+  onClosureRowClicked(rowClosure: any) {
+    if (this.clickedClosureRows.has(rowClosure)) {
+      this.clickedClosureRows.delete(rowClosure);
 
-      this.removeMarker(row.identifier);
+      this.removeClosureMarker(rowClosure.identifier);
     } else {
-      this.clickedClosureRows.add(row);
-      this.getClosingsDetails(row.identifier);
+      this.clickedClosureRows.add(rowClosure);
+      this.getClosingsDetails(rowClosure.identifier);
     }
   }
 
-  onWarningRowClicked(row: any) {
-    if (this.clickedWarningRows.has(row)) {
-      this.clickedWarningRows.delete(row);
-      this.removeMarker(row.identifier);
+  onWarningRowClicked(rowWarnings: any) {
+    if (this.clickedWarningRows.has(rowWarnings)) {
+      this.clickedWarningRows.delete(rowWarnings);
+      //this.removeMarker(row.identifier);
     } else {
-      this.clickedWarningRows.add(row);
-      this.getWarningsDetails(row.identifier);
+      this.clickedWarningRows.add(rowWarnings);
+      this.getWarningsDetails(rowWarnings.identifier);
     }
   }
 
-  onChargingRowClicked(row: any) {
-    if (this.clickedChargingRows.has(row)) {
-      this.clickedChargingRows.delete(row);
-      this.removeMarker(row.identifier);
+  onChargingRowClicked(rowCharging: any) {
+    if (this.clickedChargingRows.has(rowCharging)) {
+      this.clickedChargingRows.delete(rowCharging);
+      //this.removeMarker(row.identifier);
     } else {
-      this.clickedChargingRows.add(row);
-      this.getChargingDetails(row.identifier);
+      this.clickedChargingRows.add(rowCharging);
+      this.getChargingDetails(rowCharging.identifier);
     }
   }
 
   //Clear markers from map
-  clearMarkers(defaultCoordinates: LatLngTuple): void {
+  clearMarkers(): void {
     this.markers = [];
 
     //Clear table selection on clear markers
@@ -187,16 +197,24 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.updateMap();
   }
 
-  removeMarker(roadworkId: string) {
-    console.log('Roadwork ID to remove:', roadworkId);
+  clearSelection() {
+    this.selectedRoad = null;
+    this.roadworksData.data = [];
+    this.closureData.data = [];
+    this.warningsData.data = [];
+    this.chargingData.data = [];
+    this.clearMarkers();
+  }
 
-    // Identify the marker in the array
+  removeRoadworksMarker(roadworkId: string) {
+    // Identify the roadworks marker in the array based on the unique identifier
     const markerIndex = this.markers.findIndex(
-      (marker) => L.stamp(marker) === parseInt(roadworkId)
+      (marker) =>
+        (marker.options as CustomMarkerOptions).identifier === roadworkId
     );
 
-    if (markerIndex) {
-      // Remove the marker from the Leaflet layer group
+    if (markerIndex >= 0) {
+      // Remove the roadworks marker from the Leaflet layer group
       const removedMarker = this.markers.splice(markerIndex, 1)[0];
       this.germany.removeLayer(removedMarker);
 
@@ -204,10 +222,56 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   }
 
-  getRoadworkDetails(roadworkId: string) {
-    this.roadsService.getRoadworkDetails(roadworkId).subscribe((data: any) => {
-      console.log(data, 'single roadwork details');
+  removeClosureMarker(closureId: string) {
+    // Identify the roadworks marker in the array based on the unique identifier
+    const markerIndex = this.markers.findIndex(
+      (marker) =>
+        (marker.options as CustomMarkerOptions).identifier === closureId
+    );
 
+    if (markerIndex >= 0) {
+      // Remove the roadworks marker from the Leaflet layer group
+      const removedMarker = this.markers.splice(markerIndex, 1)[0];
+      this.germany.removeLayer(removedMarker);
+
+      this.updateMap();
+    }
+  }
+
+  removeWarningsMarker(warningId: string) {
+    // Identify the roadworks marker in the array based on the unique identifier
+    const markerIndex = this.markers.findIndex(
+      (marker) =>
+        (marker.options as CustomMarkerOptions).identifier === warningId
+    );
+
+    if (markerIndex >= 0) {
+      // Remove the roadworks marker from the Leaflet layer group
+      const removedMarker = this.markers.splice(markerIndex, 1)[0];
+      this.germany.removeLayer(removedMarker);
+
+      this.updateMap();
+    }
+  }
+
+  removeChargingsMarker(chargingId: string) {
+    // Identify the roadworks marker in the array based on the unique identifier
+    const markerIndex = this.markers.findIndex(
+      (marker) =>
+        (marker.options as CustomMarkerOptions).identifier === chargingId
+    );
+
+    if (markerIndex >= 0) {
+      // Remove the roadworks marker from the Leaflet layer group
+      const removedMarker = this.markers.splice(markerIndex, 1)[0];
+      this.germany.removeLayer(removedMarker);
+
+      this.updateMap();
+    }
+  }
+
+  getRoadworkDetails(closureId: string) {
+    this.roadsService.getRoadworkDetails(closureId).subscribe((data: any) => {
       const coordinates: LatLngTuple = [
         parseFloat(data.coordinate.lat),
         parseFloat(data.coordinate.long),
@@ -227,7 +291,8 @@ export class AppComponent implements OnInit, AfterViewInit {
             iconAnchor: [13, 41],
             iconUrl: 'assets/img/markers/marker-roadworks.svg',
           }),
-        });
+          identifier: closureId,
+        } as CustomMarkerOptions);
 
         // Add the new marker to the array and display details on click
         this.markers.push(newMarker);
@@ -250,8 +315,6 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   getClosingsDetails(closureId: string) {
     this.roadsService.getClosingsDetails(closureId).subscribe((data: any) => {
-      console.log(data, 'single closings details');
-
       const coordinates: LatLngTuple = [
         parseFloat(data.coordinate.lat),
         parseFloat(data.coordinate.long),
@@ -271,20 +334,21 @@ export class AppComponent implements OnInit, AfterViewInit {
             iconAnchor: [13, 41],
             iconUrl: 'assets/img/markers/marker-closure.svg',
           }),
-        });
+          identifier: closureId,
+        } as CustomMarkerOptions);
 
         // Add the new marker to the array and display details on click
         this.markers.push(newMarker);
         newMarker.bindPopup(`
-        <img src="assets/img/icons/closure-icon.svg">
-        <hr>
-        <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
-        <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
-        <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
-        <hr>
-        <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
-        <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
-      `);
+          <img src="assets/img/icons/closure-icon.svg">
+          <hr>
+          <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
+          <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
+          <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
+          <hr>
+          <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
+          <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
+        `);
       }
 
       // Update the map with the markers
@@ -294,8 +358,6 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   getWarningsDetails(warningId: string) {
     this.roadsService.getWarningsDetails(warningId).subscribe((data: any) => {
-      console.log(data, 'single closings details');
-
       const coordinates: LatLngTuple = [
         parseFloat(data.coordinate.lat),
         parseFloat(data.coordinate.long),
@@ -315,20 +377,21 @@ export class AppComponent implements OnInit, AfterViewInit {
             iconAnchor: [13, 41],
             iconUrl: 'assets/img/markers/marker-warning.svg',
           }),
-        });
+          identifier: warningId,
+        } as CustomMarkerOptions);
 
         // Add the new marker to the array and display details on click
         this.markers.push(newMarker);
         newMarker.bindPopup(`
-        <img src="assets/img/icons/warning-icon.svg">
-        <hr>
-        <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
-        <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
-        <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
-        <hr>
-        <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
-        <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
-      `);
+          <img src="assets/img/icons/roadworks-icon.svg">
+          <hr>
+          <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
+          <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
+          <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
+          <hr>
+          <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
+          <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
+        `);
       }
 
       // Update the map with the markers
@@ -338,8 +401,6 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   getChargingDetails(chargingId: string) {
     this.roadsService.getChargingDetails(chargingId).subscribe((data: any) => {
-      console.log(data, 'single closings details');
-
       const coordinates: LatLngTuple = [
         parseFloat(data.coordinate.lat),
         parseFloat(data.coordinate.long),
