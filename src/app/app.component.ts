@@ -95,6 +95,31 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   isRowClicked: boolean = true;
 
+  streetMaps = tileLayer(
+    'https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=onreaGxJVRblaqf1qWWa',
+    {
+      detectRetina: false,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }
+  );
+
+  germany = L.layerGroup([]);
+
+  //Define map size, prevent panning out
+  germanyBounds = L.latLngBounds(
+    L.latLng(30.2701, 1.8663), // South West corner of Germany
+    L.latLng(65.0585, 18.0419) // North East corner of Germany
+  );
+
+  options = {
+    layers: [this.streetMaps, this.germany],
+    zoom: 6,
+    minZoom: 6,
+    center: latLng([51.1657, 10.4515]),
+    maxBounds: this.germanyBounds,
+  };
+
   constructor(private roadsService: RoadsService) {}
 
   ngOnInit() {
@@ -479,31 +504,34 @@ export class AppComponent implements OnInit, AfterViewInit {
     });
   }
 
+  //Format date to specific format  "hh.mm DD.mmm.YY" format
+  //To Do: Use pipe!
+  private formatDate(date: Date): string {
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const monthAbbrev = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    const year = date.getFullYear().toString().slice(-2);
+
+    return `${hours}.${minutes}h | ${day} ${
+      monthAbbrev[date.getMonth()]
+    } ${year}`;
+  }
+
   // Define our base layers so we can reference them multiple times
-  streetMaps = tileLayer(
-    'https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=onreaGxJVRblaqf1qWWa',
-    {
-      detectRetina: false,
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }
-  );
-
-  germany = L.layerGroup([]);
-
-  //Define map size, prevent panning out
-  germanyBounds = L.latLngBounds(
-    L.latLng(30.2701, 1.8663), // South West corner of Germany
-    L.latLng(65.0585, 18.0419) // North East corner of Germany
-  );
-
-  options = {
-    layers: [this.streetMaps, this.germany],
-    zoom: 6,
-    minZoom: 6,
-    center: latLng([51.1657, 10.4515]),
-    maxBounds: this.germanyBounds,
-  };
 
   onRoadSelectionChange() {
     if (this.selectedRoad) {
@@ -523,19 +551,27 @@ export class AppComponent implements OnInit, AfterViewInit {
       // Update isBlocked property to 'YES' or 'NO'
       this.roadworksData.data.forEach((roadwork: any) => {
         roadwork.isBlocked = roadwork.isBlocked ? 'NO' : 'YES';
+
+        // Date format
+        const startTimestamp = new Date(roadwork.startTimestamp);
+        roadwork.startTimestamp = this.formatDate(startTimestamp);
       });
 
       // Log the updated data
       console.log(this.roadworksData.data);
     });
   }
-
   private getAllClosedRoads(selectedRoad: string) {
     this.roadsService.getAllClosedRoads(selectedRoad).subscribe((data: any) => {
       this.closureData.data = data.closure;
-      //console.log(data, 'closure data');
+
+      // Update isBlocked property to 'YES' or 'NO'
       this.closureData.data.forEach((closure: any) => {
         closure.isBlocked = closure.isBlocked ? 'NO' : 'YES';
+
+        //Date format
+        const startTimestamp = new Date(closure.startTimestamp);
+        closure.startTimestamp = this.formatDate(startTimestamp);
       });
     });
   }
@@ -543,9 +579,14 @@ export class AppComponent implements OnInit, AfterViewInit {
   private getAllWarnings(selectedRoad: string) {
     this.roadsService.getAllWarnings(selectedRoad).subscribe((data) => {
       this.warningsData.data = data.warning;
-      //console.log(data, 'reports data');
+
+      // Update isBlocked property to 'YES' or 'NO'
       this.warningsData.data.forEach((warning: any) => {
         warning.isBlocked = warning.isBlocked ? 'NO' : 'YES';
+
+        //Date format
+        const startTimestamp = new Date(warning.startTimestamp);
+        warning.startTimestamp = this.formatDate(startTimestamp);
       });
     });
   }
@@ -557,52 +598,4 @@ export class AppComponent implements OnInit, AfterViewInit {
       //console.log(data, 'charging data');
     });
   }
-
-  // private getAllWebcams(selectedRoad: string) {
-  //   this.roadsService.getAllWebcams(selectedRoad).subscribe((data) => {
-  //     console.log(data, 'cams data');
-  //   });
-  // }
-
-  // private getAllPakringAreas(selectedRoad: string) {
-  //   this.roadsService.getAllPakringAreas(selectedRoad).subscribe((data) => {
-  //     console.log(data, 'parking data');
-  //   });
-  // }
-
-  // private getAllCharginsStations(selectedRoad: string) {
-  //   this.roadsService.getAllCharginsStations(selectedRoad).subscribe((data) => {
-  //     console.log(data, 'charging data');
-  //   });
-  // }
-
-  // getAllRoadworks() {
-  //   if (Array.isArray(this.selectedRoads)) {
-  //     // 'this.roadIds' is an array
-  //     this.selectedRoads.forEach((roadId: string) => {
-  //       this.roadsService.getAllRoadworks(roadId).subscribe((data) => {
-  //         console.log(data, 'Data for road from MAP: ' + roadId);
-  //       });
-  //     });
-  //   } else {
-  //     // 'this.roadIds' is a single string
-  //     const roadId = this.selectedRoads as string;
-  //     this.roadsService.getAllRoadworks(roadId).subscribe((data) => {
-  //       console.log(data, 'Data for road from MAP: ' + roadId);
-  //     });
-  //   }
-  // }
-
-  // Layers control object with our two base layers and the three overlay layers
-  // layersControl = {
-  //   baseLayers: {
-  //     'Street Maps': this.streetMaps,
-  //     'Wikimedia Maps': this.wMaps,
-  //   },
-  //   overlays: {
-  //     'Mt. Rainier Summit': this.summit,
-  //   },
-  // };
-
-  // Set the initial set of displayed layers (we could also use the leafletLayers input binding for this)
 }
