@@ -83,10 +83,31 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   markers: any[] = [];
 
-  roadworksColumns: any = ['title', 'isBlocked', 'subtitle', 'startTimestamp'];
-  closureColumns: any = ['title', 'isBlocked', 'subtitle', 'startTimestamp'];
-  warningColumns: any = ['title', 'isBlocked', 'subtitle', 'startTimestamp'];
-  chargingColumns: any = ['title', 'subtitle'];
+  roadworksColumns: any[] = [
+    { name: 'Name', value: 'title' },
+    { name: 'Blocked status', value: 'isBlocked' },
+    { name: 'Details', value: 'subtitle' },
+    { name: 'Starting', value: 'startTimestamp' },
+  ];
+
+  closureColumns: any[] = [
+    { name: 'Name', value: 'title' },
+    { name: 'Blocked status', value: 'isBlocked' },
+    { name: 'Details', value: 'subtitle' },
+    { name: 'Starting', value: 'startTimestamp' },
+  ];
+
+  warningColumns: any[] = [
+    { name: 'Name', value: 'title' },
+    { name: 'Blocked status', value: 'isBlocked' },
+    { name: 'Details', value: 'subtitle' },
+    { name: 'Starting', value: 'startTimestamp' },
+  ];
+
+  chargingColumns: any[] = [
+    { name: 'Name', value: 'title' },
+    { name: 'Details', value: 'subtitle' },
+  ];
 
   roads: Roads[] = [];
   selectedRoad: string | null = null;
@@ -121,6 +142,22 @@ export class AppComponent implements OnInit, AfterViewInit {
   };
 
   constructor(private roadsService: RoadsService) {}
+
+  getRoadworksColumnValues(): string[] {
+    return this.roadworksColumns.map((column) => column.value);
+  }
+
+  getClosureColumnValues(): string[] {
+    return this.closureColumns.map((column) => column.value);
+  }
+
+  getWarningColumnValues(): string[] {
+    return this.warningColumns.map((column) => column.value);
+  }
+
+  getChargingColumnValues(): string[] {
+    return this.chargingColumns.map((column) => column.value);
+  }
 
   ngOnInit() {
     this.roadsService.getAllRoads().subscribe((data: any) => {

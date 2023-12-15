@@ -65,6 +65,7 @@
         </div>
       </div>
 
+      <!-- Table -->
       <div class="col-12">
         <div class="text-center border-round-xs surface-100">
           <mat-tab-group>
@@ -98,24 +99,30 @@
               >
                 <ng-container
                   *ngFor="let column of roadworksColumns"
-                  [matColumnDef]="column"
+                  [matColumnDef]="column.value"
                 >
                   <th mat-header-cell *matHeaderCellDef>
-                    {{ column | titlecase }}
+                    {{ column.name | titlecase }}
                   </th>
                   <td mat-cell *matCellDef="let element">
-                    {{ element[column] }}
+                    {{ element[column.value] }}
                   </td>
                 </ng-container>
 
-                <tr mat-header-row *matHeaderRowDef="roadworksColumns"></tr>
+                <tr
+                  mat-header-row
+                  *matHeaderRowDef="getRoadworksColumnValues()"
+                ></tr>
 
                 <tr
                   class="cursor-pointer"
                   mat-row
                   (click)="onRoadworksRowClicked(rowRoadwork)"
                   [class.row-is-clicked]="clickedRoadworkRows.has(rowRoadwork)"
-                  *matRowDef="let rowRoadwork; columns: roadworksColumns"
+                  *matRowDef="
+                    let rowRoadwork;
+                    columns: getRoadworksColumnValues()
+                  "
                 ></tr>
               </table>
 
@@ -159,24 +166,27 @@
               >
                 <ng-container
                   *ngFor="let column of closureColumns"
-                  [matColumnDef]="column"
+                  [matColumnDef]="column.value"
                 >
                   <th mat-header-cell *matHeaderCellDef>
-                    {{ column | titlecase }}
+                    {{ column.name | titlecase }}
                   </th>
                   <td mat-cell *matCellDef="let element">
-                    {{ element[column] }}
+                    {{ element[column.value] }}
                   </td>
                 </ng-container>
 
-                <tr mat-header-row *matHeaderRowDef="closureColumns"></tr>
+                <tr
+                  mat-header-row
+                  *matHeaderRowDef="getClosureColumnValues()"
+                ></tr>
 
                 <tr
                   class="cursor-pointer"
                   mat-row
                   (click)="onClosureRowClicked(rowClosure)"
                   [class.row-is-clicked]="clickedClosureRows.has(rowClosure)"
-                  *matRowDef="let rowClosure; columns: closureColumns"
+                  *matRowDef="let rowClosure; columns: getClosureColumnValues()"
                 ></tr>
               </table>
               <mat-paginator
@@ -217,24 +227,27 @@
               >
                 <ng-container
                   *ngFor="let column of warningColumns"
-                  [matColumnDef]="column"
+                  [matColumnDef]="column.value"
                 >
                   <th mat-header-cell *matHeaderCellDef>
-                    {{ column | titlecase }}
+                    {{ column.name | titlecase }}
                   </th>
                   <td mat-cell *matCellDef="let element">
-                    {{ element[column] }}
+                    {{ element[column.value] }}
                   </td>
                 </ng-container>
 
-                <tr mat-header-row *matHeaderRowDef="warningColumns"></tr>
+                <tr
+                  mat-header-row
+                  *matHeaderRowDef="getWarningColumnValues()"
+                ></tr>
 
                 <tr
                   class="cursor-pointer"
                   mat-row
                   (click)="onWarningRowClicked(rowWarning)"
                   [class.row-is-clicked]="clickedWarningRows.has(rowWarning)"
-                  *matRowDef="let rowWarning; columns: warningColumns"
+                  *matRowDef="let rowWarning; columns: getWarningColumnValues()"
                 ></tr>
               </table>
               <mat-paginator
@@ -275,23 +288,30 @@
               >
                 <ng-container
                   *ngFor="let column of chargingColumns"
-                  [matColumnDef]="column"
+                  [matColumnDef]="column.value"
                 >
                   <th mat-header-cell *matHeaderCellDef>
-                    {{ column | titlecase }}
+                    {{ column.name | titlecase }}
                   </th>
                   <td mat-cell *matCellDef="let element">
-                    {{ element[column] }}
+                    {{ element[column.value] }}
                   </td>
                 </ng-container>
 
-                <tr mat-header-row *matHeaderRowDef="chargingColumns"></tr>
+                <tr
+                  mat-header-row
+                  *matHeaderRowDef="getChargingColumnValues()"
+                ></tr>
+
                 <tr
                   class="cursor-pointer"
                   mat-row
                   (click)="onChargingRowClicked(rowCharging)"
                   [class.row-is-clicked]="clickedChargingRows.has(rowCharging)"
-                  *matRowDef="let rowCharging; columns: chargingColumns"
+                  *matRowDef="
+                    let rowCharging;
+                    columns: getChargingColumnValues()
+                  "
                 ></tr>
               </table>
 
