@@ -70,9 +70,26 @@
           <mat-tab-group>
             <!-- ROADWORKS -->
             <mat-tab>
-              <ng-template mat-tab-label>
+              <ng-template mat-tab-label class="flex justify-content-between">
                 <mat-icon fontIcon="handyman"></mat-icon>
-                <span class="ml-2">Roadworks</span>
+                <p class="ml-2">
+                  Roadworks
+                  <span
+                    matTooltip="Total number of Roadworks on this roads"
+                    *ngIf="roadworksData.data.length > 0"
+                    >(<b>{{ roadworksData.data.length }}</b
+                    >)</span
+                  >
+                </p>
+
+                <mat-icon
+                  *ngIf="roadworksData.data.length > 0"
+                  style="font-size: 16px"
+                  class="ml-2"
+                  matTooltip="Remove only Roarworks markers"
+                  (click)="clearRoadworks()"
+                  >close</mat-icon
+                >
               </ng-template>
               <table
                 mat-table
@@ -96,17 +113,16 @@
                 <tr
                   class="cursor-pointer"
                   mat-row
-                  (click)="onRoadworksRowClicked(rowRoadworks)"
-                  [class.demo-row-is-clicked]="
-                    clickedRoadworkRows.has(rowRoadworks)
-                  "
-                  *matRowDef="let rowRoadworks; columns: roadworksColumns"
+                  (click)="onRoadworksRowClicked(rowRoadwork)"
+                  [class.row-is-clicked]="clickedRoadworkRows.has(rowRoadwork)"
+                  *matRowDef="let rowRoadwork; columns: roadworksColumns"
                 ></tr>
               </table>
+
               <mat-paginator
                 #roadworksPaginator
                 [pageSize]="5"
-                [pageSizeOptions]="[5, 8]"
+                [pageSizeOptions]="[5, 10]"
                 showFirstLastButtons
                 showFirstLastButtons
               ></mat-paginator>
@@ -114,9 +130,26 @@
 
             <!-- CLOSURES -->
             <mat-tab>
-              <ng-template mat-tab-label>
+              <ng-template mat-tab-label class="flex justify-content-between">
                 <mat-icon fontIcon="remove_road"></mat-icon>
-                <span class="ml-2">Closed roads</span>
+                <p class="ml-2">
+                  Closures
+                  <span
+                    matTooltip="Total number of Closures on this road"
+                    *ngIf="closureData.data.length > 0"
+                    >(<b>{{ closureData.data.length }}</b
+                    >)</span
+                  >
+                </p>
+
+                <mat-icon
+                  *ngIf="closureData.data.length > 0"
+                  style="font-size: 16px"
+                  class="ml-2"
+                  matTooltip="Remove only Closure markers"
+                  (click)="clearClosures()"
+                  >close</mat-icon
+                >
               </ng-template>
 
               <table
@@ -137,29 +170,44 @@
                 </ng-container>
 
                 <tr mat-header-row *matHeaderRowDef="closureColumns"></tr>
+
                 <tr
                   class="cursor-pointer"
                   mat-row
                   (click)="onClosureRowClicked(rowClosure)"
-                  [class.demo-row-is-clicked]="
-                    clickedClosureRows.has(rowClosure)
-                  "
+                  [class.row-is-clicked]="clickedClosureRows.has(rowClosure)"
                   *matRowDef="let rowClosure; columns: closureColumns"
                 ></tr>
               </table>
               <mat-paginator
                 #closurePaginator
                 [pageSize]="5"
-                [pageSizeOptions]="[5, 8]"
+                [pageSizeOptions]="[5, 10]"
                 showFirstLastButtons
               ></mat-paginator>
             </mat-tab>
 
             <!-- WARNINGS -->
             <mat-tab>
-              <ng-template mat-tab-label>
+              <ng-template mat-tab-label class="flex justify-content-between">
                 <mat-icon fontIcon="warning"></mat-icon>
-                <span class="ml-2">Warnings</span>
+                <p class="ml-2">
+                  Warning
+                  <span
+                    matTooltip="Total number of Warnings on this road"
+                    *ngIf="warningsData.data.length > 0"
+                    >(<b>{{ warningsData.data.length }}</b
+                    >)</span
+                  >
+                </p>
+
+                <mat-icon
+                  *ngIf="warningsData.data.length > 0"
+                  class="ml-2"
+                  matTooltip="Remove only Warnings markers"
+                  (click)="clearWarnings()"
+                  >close</mat-icon
+                >
               </ng-template>
 
               <table
@@ -184,26 +232,40 @@
                 <tr
                   class="cursor-pointer"
                   mat-row
-                  (click)="onRoadworksRowClicked(rowWarnings)"
-                  [class.demo-row-is-clicked]="
-                    clickedWarningRows.has(rowWarnings)
-                  "
-                  *matRowDef="let rowWarnings; columns: warningColumns"
+                  (click)="onWarningRowClicked(rowWarning)"
+                  [class.row-is-clicked]="clickedWarningRows.has(rowWarning)"
+                  *matRowDef="let rowWarning; columns: warningColumns"
                 ></tr>
               </table>
               <mat-paginator
                 #warningsPaginator
                 [pageSize]="5"
-                [pageSizeOptions]="[5, 8]"
+                [pageSizeOptions]="[5, 10]"
                 showFirstLastButtons
               ></mat-paginator>
             </mat-tab>
 
             <!-- CHARGING STATIONS -->
             <mat-tab>
-              <ng-template mat-tab-label>
+              <ng-template mat-tab-label class="flex justify-content-between">
                 <mat-icon fontIcon="ev_station"></mat-icon>
-                <span class="ml-2">Charging stations</span>
+                <p class="ml-2">
+                  Charging stations
+                  <span
+                    matTooltip="Total number of Roadworks on this road"
+                    *ngIf="chargingData.data.length > 0"
+                    >(<b>{{ chargingData.data.length }}</b
+                    >)</span
+                  >
+                </p>
+
+                <mat-icon
+                  *ngIf="chargingData.data.length > 0"
+                  class="ml-2"
+                  matTooltip="Remove only Charging stations markers"
+                  (click)="clearCharging()"
+                  >close</mat-icon
+                >
               </ng-template>
 
               <table
@@ -228,16 +290,15 @@
                   class="cursor-pointer"
                   mat-row
                   (click)="onChargingRowClicked(rowCharging)"
-                  [class.demo-row-is-clicked]="
-                    clickedChargingRows.has(rowCharging)
-                  "
+                  [class.row-is-clicked]="clickedChargingRows.has(rowCharging)"
                   *matRowDef="let rowCharging; columns: chargingColumns"
                 ></tr>
               </table>
+
               <mat-paginator
                 #chargingPaginator
                 [pageSize]="5"
-                [pageSizeOptions]="[5, 8]"
+                [pageSizeOptions]="[5, 10]"
                 showFirstLastButtons
               ></mat-paginator>
             </mat-tab>
@@ -258,63 +319,3 @@
     </div>
   </div>
 </div>
-
-<div class="grid nested-grid">
-  <!-- Your existing HTML code here -->
-</div>
-
-<!-- <div
-  class="map-container"
-  leaflet
-  [leafletOptions]="options"
-  [leafletLayersControl]="layersControl"
-></div> -->
-
-<!-- <div class="">
-  <div class="row">
-    <div class="col-12">
-      <div class="text-center p-1 bg-blue-500 font-bold">
-        <mat-form-field>
-          <mat-label>Roads</mat-label>
-          <mat-select
-            [formControl]="selectedRoadsControl"
-            (selectionChange)="onRoadSelectionChange()"
-            single
-          >
-            <mat-select-trigger>
-              {{ selectedRoadsControl.value?.[0] || ' ' }}
-              <span
-                *ngIf="selectedRoadsControl.value?.length! > 1"
-                class="example-additional-selection"
-              >
-                and {{ (selectedRoadsControl.value?.length! || 0) - 1 }}
-                {{
-                  selectedRoadsControl.value?.length! === 2 ? "other" : "others"
-                }}
-              </span>
-            </mat-select-trigger>
-
-            <mat-option *ngFor="let road of roads" [value]="road">{{
-              road
-            }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-12">
-      <div class="text-center p-1 bg-blue-500 font-bold">
-        <!-- <div *ngIf="selectedRoadsControl">
-          <h3>Selected Road(s):</h3>
-          <p>{{ selectedRoadsControl.value }}</p>
-        </div> -->
-<!-- <div *ngIf="selectedRoadsControl && selectedRoadsControl.value">
-  <mat-chip *ngFor="let road of selectedRoadsControl.value" class="mr-2"> -->
-<!-- {{ road }}
-  </mat-chip>
-</div> -->
-<!-- </div>
-    </div>
-  </div>
-</div> -->

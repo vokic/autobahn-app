@@ -20,6 +20,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import Roads from '../assets/types/roads.type';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 class CustomMarker extends L.Marker {
   constructor(latlng: L.LatLngExpression, options?: CustomMarkerOptions) {
@@ -53,6 +55,8 @@ interface CustomMarkerOptions extends L.MarkerOptions {
     MatMenuModule,
     MatPaginatorModule,
     MatCheckboxModule,
+    MatBadgeModule,
+    MatTooltipModule,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
@@ -72,8 +76,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild('chargingPaginator', { static: true })
   chargingPaginator: MatPaginator | null = null;
 
-  headerCols: string[] = ['Title', 'Blocking', 'Subtitle', 'Start'];
-
   clickedRoadworkRows = new Set<any>();
   clickedClosureRows = new Set<any>();
   clickedWarningRows = new Set<any>();
@@ -81,28 +83,10 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   markers: any[] = [];
 
-  roadworksColumns: string[] = [
-    'title',
-    'isBlocked',
-    'subtitle',
-    'startTimestamp',
-  ];
-
-  closureColumns: string[] = [
-    'title',
-    'isBlocked',
-    'subtitle',
-    'startTimestamp',
-  ];
-
-  warningColumns: string[] = [
-    'title',
-    'isBlocked',
-    'subtitle',
-    'startTimestamp',
-  ];
-
-  chargingColumns: string[] = ['title', 'subtitle'];
+  roadworksColumns: any = ['title', 'isBlocked', 'subtitle', 'startTimestamp'];
+  closureColumns: any = ['title', 'isBlocked', 'subtitle', 'startTimestamp'];
+  warningColumns: any = ['title', 'isBlocked', 'subtitle', 'startTimestamp'];
+  chargingColumns: any = ['title', 'subtitle'];
 
   roads: Roads[] = [];
   selectedRoad: string | null = null;
@@ -164,27 +148,29 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   }
 
-  onWarningRowClicked(rowWarnings: any) {
-    if (this.clickedWarningRows.has(rowWarnings)) {
-      this.clickedWarningRows.delete(rowWarnings);
-      //this.removeMarker(row.identifier);
+  onWarningRowClicked(rowWarning: any) {
+    if (this.clickedWarningRows.has(rowWarning)) {
+      this.clickedWarningRows.delete(rowWarning);
+
+      this.removeWarningsMarker(rowWarning.identifier);
     } else {
-      this.clickedWarningRows.add(rowWarnings);
-      this.getWarningsDetails(rowWarnings.identifier);
+      this.clickedWarningRows.add(rowWarning);
+      this.getWarningsDetails(rowWarning.identifier);
     }
   }
 
   onChargingRowClicked(rowCharging: any) {
     if (this.clickedChargingRows.has(rowCharging)) {
       this.clickedChargingRows.delete(rowCharging);
-      //this.removeMarker(row.identifier);
+
+      this.removeChargingsMarker(rowCharging.identifier);
     } else {
       this.clickedChargingRows.add(rowCharging);
       this.getChargingDetails(rowCharging.identifier);
     }
   }
 
-  //Clear markers from map
+  //Clear all markers from map
   clearMarkers(): void {
     this.markers = [];
 
@@ -206,6 +192,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.clearMarkers();
   }
 
+  //Remove markers
   removeRoadworksMarker(roadworkId: string) {
     // Identify the roadworks marker in the array based on the unique identifier
     const markerIndex = this.markers.findIndex(
@@ -220,6 +207,38 @@ export class AppComponent implements OnInit, AfterViewInit {
 
       this.updateMap();
     }
+  }
+
+  clearRoadworks() {
+    this.roadworksData.data.forEach((roadwork) => {
+      this.removeRoadworksMarker(roadwork.identifier);
+    });
+
+    this.clickedRoadworkRows.clear();
+  }
+
+  clearClosures() {
+    this.closureData.data.forEach((closure) => {
+      this.removeClosureMarker(closure.identifier);
+    });
+
+    this.clickedClosureRows.clear();
+  }
+
+  clearWarnings() {
+    this.warningsData.data.forEach((warning) => {
+      this.removeWarningsMarker(warning.identifier);
+    });
+
+    this.clickedWarningRows.clear();
+  }
+
+  clearCharging() {
+    this.chargingData.data.forEach((charging) => {
+      this.removeChargingsMarker(charging.identifier);
+    });
+
+    this.clickedChargingRows.clear();
   }
 
   removeClosureMarker(closureId: string) {
@@ -255,14 +274,14 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   removeChargingsMarker(chargingId: string) {
-    // Identify the roadworks marker in the array based on the unique identifier
+    // Identify the charging marker in the array based on the unique identifier
     const markerIndex = this.markers.findIndex(
       (marker) =>
         (marker.options as CustomMarkerOptions).identifier === chargingId
     );
 
     if (markerIndex >= 0) {
-      // Remove the roadworks marker from the Leaflet layer group
+      // Remove the charging marker from the Leaflet layer group
       const removedMarker = this.markers.splice(markerIndex, 1)[0];
       this.germany.removeLayer(removedMarker);
 
@@ -270,8 +289,9 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   }
 
-  getRoadworkDetails(closureId: string) {
-    this.roadsService.getRoadworkDetails(closureId).subscribe((data: any) => {
+  //Get details
+  getRoadworkDetails(roadworkId: string) {
+    this.roadsService.getRoadworkDetails(roadworkId).subscribe((data: any) => {
       const coordinates: LatLngTuple = [
         parseFloat(data.coordinate.lat),
         parseFloat(data.coordinate.long),
@@ -291,7 +311,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             iconAnchor: [13, 41],
             iconUrl: 'assets/img/markers/marker-roadworks.svg',
           }),
-          identifier: closureId,
+          identifier: roadworkId,
         } as CustomMarkerOptions);
 
         // Add the new marker to the array and display details on click
@@ -383,7 +403,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         // Add the new marker to the array and display details on click
         this.markers.push(newMarker);
         newMarker.bindPopup(`
-          <img src="assets/img/icons/roadworks-icon.svg">
+          <img src="assets/img/icons/warning-icon.svg">
           <hr>
           <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
           <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
@@ -400,7 +420,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   getChargingDetails(chargingId: string) {
-    this.roadsService.getChargingDetails(chargingId).subscribe((data: any) => {
+    this.roadsService.getWarningsDetails(chargingId).subscribe((data: any) => {
       const coordinates: LatLngTuple = [
         parseFloat(data.coordinate.lat),
         parseFloat(data.coordinate.long),
@@ -420,20 +440,21 @@ export class AppComponent implements OnInit, AfterViewInit {
             iconAnchor: [13, 41],
             iconUrl: 'assets/img/markers/marker-charging.svg',
           }),
-        });
+          identifier: chargingId,
+        } as CustomMarkerOptions);
 
         // Add the new marker to the array and display details on click
         this.markers.push(newMarker);
         newMarker.bindPopup(`
-        <img src="assets/img/icons/charging-icon.svg">
-        <hr>
-        <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
-        <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
-        <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
-        <hr>
-        <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
-        <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
-      `);
+            <img src="assets/img/icons/charging-icon.svg">
+            <hr>
+            <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
+            <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
+            <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
+            <hr>
+            <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
+            <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
+          `);
       }
 
       // Update the map with the markers
@@ -472,8 +493,8 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   //Define map size, prevent panning out
   germanyBounds = L.latLngBounds(
-    L.latLng(47.2701, 5.8663), // Southwest corner of Germany
-    L.latLng(55.0585, 15.0419) // Northeast corner of Germany
+    L.latLng(30.2701, 1.8663), // South West corner of Germany
+    L.latLng(65.0585, 18.0419) // North East corner of Germany
   );
 
   options = {
