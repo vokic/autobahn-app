@@ -19,16 +19,16 @@
                     road
                   }}</mat-option>
                 </mat-select>
-                <button
-                  mat-icon-button
-                  matSuffix
-                  color="warn"
-                  *ngIf="selectedRoad"
-                  (click)="clearSelection()"
-                >
-                  <mat-icon>close</mat-icon>
-                </button>
               </mat-form-field>
+              <button
+                mat-icon-button
+                matSuffix
+                color="warn"
+                *ngIf="selectedRoad"
+                (click)="clearSelection()"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
             </div>
           </div>
           <div class="col">
