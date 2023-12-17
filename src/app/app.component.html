@@ -20,14 +20,6 @@
                   }}</mat-option>
                 </mat-select>
               </mat-form-field>
-              <!-- <button
-                mat-icon-button
-                matSuffix
-                *ngIf="selectedRoad"
-                (click)="clearSelection()"
-              >
-                <mat-icon>close</mat-icon>
-              </button> -->
             </div>
           </div>
           <div class="col">
@@ -69,7 +61,6 @@
           <mat-tab-group (selectedTabChange)="onTabChange($event)">
             <!-- ROADWORKS -->
             <mat-tab id="roadworksTab">
-              <!-- Add an *ngIf to conditionally render content -->
               <ng-template mat-tab-label class="flex justify-content-between">
                 <mat-icon fontIcon="handyman"></mat-icon>
                 <span class="ml-2">Roadworks</span>
@@ -80,14 +71,6 @@
                 >
                   &nbsp;
                 </div>
-
-                <!-- <span
-                    matTooltip="Total number of Closures on this road"
-                    *ngIf="roadworksData.data.length > 0"
-                  >
-                    (<b>{{ roadworksData.data.length }}</b
-                    >)
-                  </span> -->
               </ng-template>
               <app-table
                 #tableComponentRef
@@ -103,7 +86,6 @@
 
             <!-- CLOSURES -->
             <mat-tab id="closuresTab">
-              <!-- Add an *ngIf to conditionally render content -->
               <ng-template mat-tab-label class="flex justify-content-between">
                 <mat-icon fontIcon="remove_road"></mat-icon>
                 <span class="ml-2">Closed Roads</span>
@@ -114,13 +96,6 @@
                 >
                   &nbsp;
                 </div>
-                <!-- <mat-icon
-                  #tableComponent
-                  style="font-size: 16px"
-                  class="ml-2"
-                  matTooltip="Remove only Closed roads markers"
-                  >close</mat-icon
-                > -->
               </ng-template>
               <app-table
                 #tableComponentRef
@@ -135,135 +110,112 @@
             </mat-tab>
 
             <!-- WARNINGS -->
-            <!-- <mat-tab>
+            <mat-tab id="warningsTab">
               <ng-template mat-tab-label class="flex justify-content-between">
                 <mat-icon fontIcon="warning"></mat-icon>
-                <p class="ml-2">
-                  Warning
-                  <span
-                    matTooltip="Total number of Warnings on this road"
-                    *ngIf="warningsData.data.length > 0"
-                    >(<b>{{ warningsData.data.length }}</b
-                    >)</span
-                  >
-                </p>
-
-                <mat-icon
+                <span class="ml-2">Warnings</span>
+                <div
                   *ngIf="warningsData.data.length > 0"
-                  class="ml-2"
-                  matTooltip="Remove only Warnings markers"
-                  (click)="clearWarnings()"
-                  >close</mat-icon
+                  [matBadge]="warningsData.data.length"
+                  matBadgeOverlap="false"
                 >
+                  &nbsp;
+                </div>
               </ng-template>
-
-              <table
-                mat-table
-                [dataSource]="warningsData"
-                class="mat-elevation-z8"
-              >
-                <ng-container
-                  *ngFor="let column of warningColumns"
-                  [matColumnDef]="column.value"
-                >
-                  <th mat-header-cell *matHeaderCellDef>
-                    {{ column.name | titlecase }}
-                  </th>
-                  <td mat-cell *matCellDef="let element">
-                    {{ element[column.value] }}
-                  </td>
-                </ng-container>
-
-                <tr
-                  mat-header-row
-                  *matHeaderRowDef="getWarningColumnValues()"
-                ></tr>
-
-                <tr
-                  class="cursor-pointer"
-                  mat-row
-                  (click)="onWarningRowClicked(rowWarning)"
-                  [class.row-is-clicked]="clickedWarningRows.has(rowWarning)"
-                  *matRowDef="let rowWarning; columns: getWarningColumnValues()"
-                ></tr>
-              </table>
-              <mat-paginator
-                #warningsPaginator
-                [pageSize]="5"
-                [pageSizeOptions]="[5, 10]"
-                showFirstLastButtons
-              ></mat-paginator>
-            </mat-tab> -->
+              <app-table
+                #tableComponentRef
+                [germany]="germany"
+                [clickedWarningsRows]="clickedWarningRows"
+                [markers]="markers"
+                [selectedRoad]="selectedRoad"
+                [roads]="roads"
+                [warningsData]="warningsData"
+                [selectedIndex]="selectedIndex"
+              ></app-table>
+            </mat-tab>
 
             <!-- CHARGING STATIONS -->
-            <!-- <mat-tab>
+            <mat-tab id="chargingsTab">
               <ng-template mat-tab-label class="flex justify-content-between">
                 <mat-icon fontIcon="ev_station"></mat-icon>
-                <p class="ml-2">
-                  Charging stations
-                  <span
-                    matTooltip="Total number of Roadworks on this road"
-                    *ngIf="chargingData.data.length > 0"
-                    >(<b>{{ chargingData.data.length }}</b
-                    >)</span
-                  >
-                </p>
-
-                <mat-icon
-                  *ngIf="chargingData.data.length > 0"
-                  class="ml-2"
-                  matTooltip="Remove only Charging stations markers"
-                  (click)="clearCharging()"
-                  >close</mat-icon
+                <span class="ml-2">Charging Stations</span>
+                <div
+                  *ngIf="chargingsData.data.length > 0"
+                  [matBadge]="chargingsData.data.length"
+                  matBadgeOverlap="false"
                 >
+                  &nbsp;
+                </div>
               </ng-template>
+              <app-table
+                #tableComponentRef
+                [germany]="germany"
+                [clickedChargingRows]="clickedChargingRows"
+                [markers]="markers"
+                [selectedRoad]="selectedRoad"
+                [roads]="roads"
+                [chargingsData]="chargingsData"
+                [selectedIndex]="selectedIndex"
+              ></app-table>
+            </mat-tab>
 
-              <table
-                mat-table
-                [dataSource]="chargingData"
-                class="mat-elevation-z8"
-              >
-                <ng-container
-                  *ngFor="let column of chargingColumns"
-                  [matColumnDef]="column.value"
+            <!-- PARKINGS -->
+            <mat-tab id="parkingTab">
+              <ng-template mat-tab-label class="flex justify-content-between">
+                <mat-icon fontIcon="local_parking"></mat-icon>
+                <span class="ml-2">Parkings</span>
+                <div
+                  *ngIf="parkingData.data.length > 0"
+                  [matBadge]="parkingData.data.length"
+                  matBadgeOverlap="false"
                 >
-                  <th mat-header-cell *matHeaderCellDef>
-                    {{ column.name | titlecase }}
-                  </th>
-                  <td mat-cell *matCellDef="let element">
-                    {{ element[column.value] }}
-                  </td>
-                </ng-container>
+                  &nbsp;
+                </div>
+              </ng-template>
+              <app-table
+                #tableComponentRef
+                [germany]="germany"
+                [clickedParkingRows]="clickedParkingRows"
+                [markers]="markers"
+                [selectedRoad]="selectedRoad"
+                [roads]="roads"
+                [parkingData]="parkingData"
+                [selectedIndex]="selectedIndex"
+              ></app-table>
+            </mat-tab>
 
-                <tr
-                  mat-header-row
-                  *matHeaderRowDef="getChargingColumnValues()"
-                ></tr>
+            <!-- CAMERAS -->
+            <!-- Removed tab because BE returns nothing-->
 
-                <tr
-                  class="cursor-pointer"
-                  mat-row
-                  (click)="onChargingRowClicked(rowCharging)"
-                  [class.row-is-clicked]="clickedChargingRows.has(rowCharging)"
-                  *matRowDef="
-                    let rowCharging;
-                    columns: getChargingColumnValues()
-                  "
-                ></tr>
-              </table>
-
-              <mat-paginator
-                #chargingPaginator
-                [pageSize]="5"
-                [pageSizeOptions]="[5, 10]"
-                showFirstLastButtons
-              ></mat-paginator>
+            <!-- <mat-tab id="cameraTab">
+              <ng-template mat-tab-label class="flex justify-content-between">
+                <mat-icon fontIcon="photo_camera"></mat-icon>
+                <span class="ml-2">Cameras</span>
+                <div
+                  *ngIf="cameraData.data.length > 0"
+                  [matBadge]="cameraData.data.length"
+                  matBadgeOverlap="false"
+                >
+                  &nbsp;
+                </div>
+              </ng-template>
+              <app-table
+                #tableComponentRef
+                [germany]="germany"
+                [clickedCameraRows]="clickedCameraRows"
+                [markers]="markers"
+                [selectedRoad]="selectedRoad"
+                [roads]="roads"
+                [cameraData]="cameraData"
+                [selectedIndex]="selectedIndex"
+              ></app-table>
             </mat-tab> -->
           </mat-tab-group>
         </div>
       </div>
     </div>
   </div>
+
   <!-- Map -->
   <div class="col-6">
     <div class="text-center border-round-xs h-full surface-100 font-bold">

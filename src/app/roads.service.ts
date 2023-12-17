@@ -13,9 +13,13 @@ export class RoadsService {
 
   constructor() {}
 
+  //ROADS
+
   getAllRoads(): Observable<{ roads: Roads[] }> {
     return this.http.get<{ roads: Roads[] }>(this.apiUrl);
   }
+
+  //GENERAL
 
   getAllRoadworks(roadId: string): Observable<{ roadworks: any[] }> {
     return this.http.get<{ roadworks: any[] }>(
@@ -43,6 +47,20 @@ export class RoadsService {
     );
   }
 
+  getAllParkings(roadId: string): Observable<{ parking_lorry: any[] }> {
+    return this.http.get<{ parking_lorry: any[] }>(
+      this.apiUrl + `/${roadId}/services/parking_lorry`
+    );
+  }
+
+  getAllWebcams(roadId: string): Observable<{ webcams: any[] }> {
+    return this.http.get<{ webcams: any[] }>(
+      this.apiUrl + `/${roadId}/services/webcam`
+    );
+  }
+
+  //DETAILS
+
   getRoadworkDetails(
     roadworkId: string
   ): Observable<{ roadworkDetails: BaseObject }> {
@@ -69,17 +87,27 @@ export class RoadsService {
 
   getChargingDetails(
     stationId: string
-  ): Observable<{ stationDetails: BaseObject }> {
-    return this.http.get<{ stationDetails: BaseObject }>(
+  ): Observable<{ chargingDetails: BaseObject }> {
+    return this.http.get<{ chargingDetails: BaseObject }>(
       this.apiUrl + `/details/electric_charging_station/${stationId}`
     );
   }
 
-  // getAllWebcams(roadId: string): Observable<{ roadworks: Roadworks[] }> {
-  //   return this.http.get<{ roadworks: Roadworks[] }>(
-  //     this.apiUrl + `/${roadId}/services/webcam`
-  //   );
-  // }
+  getParkingDetails(
+    parkingId: string
+  ): Observable<{ parkingDetails: BaseObject }> {
+    return this.http.get<{ parkingDetails: BaseObject }>(
+      this.apiUrl + `/details/parking_lorry/${parkingId}`
+    );
+  }
+
+  getWebcamDetails(
+    webcamId: string
+  ): Observable<{ webcamDetails: BaseObject }> {
+    return this.http.get<{ webcamDetails: BaseObject }>(
+      this.apiUrl + `/details/webcam/${webcamId}`
+    );
+  }
 
   // getAllPakringAreas(roadId: string): Observable<{ roadworks: Roadworks[] }> {
   //   return this.http.get<{ roadworks: Roadworks[] }>(
