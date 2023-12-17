@@ -1,19 +1,26 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ApplicationRef,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  OnInit,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatSelectModule } from '@angular/material/select';
+import { MatSelectChange, MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
-import { MapComponent } from './components/map/map.component';
 import { RoadsService } from './roads.service';
 import { MatCardModule } from '@angular/material/card';
-import { LatLngTuple, icon, latLng, marker, tileLayer } from 'leaflet';
+import { latLng, tileLayer } from 'leaflet';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatTabsModule } from '@angular/material/tabs';
-import * as L from 'leaflet';
+import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatMenuModule } from '@angular/material/menu';
@@ -22,12 +29,9 @@ import Roads from '../assets/types/roads.type';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatTooltipModule } from '@angular/material/tooltip';
-
-class CustomMarker extends L.Marker {
-  constructor(latlng: L.LatLngExpression, options?: CustomMarkerOptions) {
-    super(latlng, options);
-  }
-}
+import { TableComponent } from './shared/table/table.component';
+import * as L from 'leaflet';
+import { Map } from 'leaflet';
 
 interface CustomMarkerOptions extends L.MarkerOptions {
   identifier?: string;
@@ -44,7 +48,6 @@ interface CustomMarkerOptions extends L.MarkerOptions {
     FormsModule,
     ReactiveFormsModule,
     MatChipsModule,
-    MapComponent,
     MatCardModule,
     LeafletModule,
     MatInputModule,
@@ -57,6 +60,7 @@ interface CustomMarkerOptions extends L.MarkerOptions {
     MatCheckboxModule,
     MatBadgeModule,
     MatTooltipModule,
+    TableComponent,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
@@ -64,50 +68,18 @@ interface CustomMarkerOptions extends L.MarkerOptions {
 export class AppComponent implements OnInit, AfterViewInit {
   roadworksData: MatTableDataSource<any> = new MatTableDataSource<any>([]);
   closureData: MatTableDataSource<any> = new MatTableDataSource<any>([]);
-  warningsData: MatTableDataSource<any> = new MatTableDataSource<any>([]);
-  chargingData: MatTableDataSource<any> = new MatTableDataSource<any>([]);
 
-  @ViewChild('roadworksPaginator', { static: true })
-  roadworksPaginator: MatPaginator | null = null;
-  @ViewChild('closurePaginator', { static: true })
-  closurePaginator: MatPaginator | null = null;
-  @ViewChild('warningsPaginator', { static: true })
-  warningsPaginator: MatPaginator | null = null;
-  @ViewChild('chargingPaginator', { static: true })
-  chargingPaginator: MatPaginator | null = null;
+  @Output() roadSelectionChange: EventEmitter<any> = new EventEmitter<any>();
+  @Output() selectedIndexChange = new EventEmitter<number>();
 
-  clickedRoadworkRows = new Set<any>();
-  clickedClosureRows = new Set<any>();
-  clickedWarningRows = new Set<any>();
-  clickedChargingRows = new Set<any>();
+  @Output() clearClosuresEvent: EventEmitter<void> = new EventEmitter<void>();
+
+  @ViewChild(TableComponent) tableRef!: TableComponent;
 
   markers: any[] = [];
 
-  roadworksColumns: any[] = [
-    { name: 'Name', value: 'title' },
-    { name: 'Blocked status', value: 'isBlocked' },
-    { name: 'Details', value: 'subtitle' },
-    { name: 'Starting', value: 'startTimestamp' },
-  ];
-
-  closureColumns: any[] = [
-    { name: 'Name', value: 'title' },
-    { name: 'Blocked status', value: 'isBlocked' },
-    { name: 'Details', value: 'subtitle' },
-    { name: 'Starting', value: 'startTimestamp' },
-  ];
-
-  warningColumns: any[] = [
-    { name: 'Name', value: 'title' },
-    { name: 'Blocked status', value: 'isBlocked' },
-    { name: 'Details', value: 'subtitle' },
-    { name: 'Starting', value: 'startTimestamp' },
-  ];
-
-  chargingColumns: any[] = [
-    { name: 'Name', value: 'title' },
-    { name: 'Details', value: 'subtitle' },
-  ];
+  clickedRoadworkRows = new Set<any>();
+  clickedClosureRows = new Set<any>();
 
   roads: Roads[] = [];
   selectedRoad: string | null = null;
@@ -115,6 +87,10 @@ export class AppComponent implements OnInit, AfterViewInit {
   element: any;
 
   isRowClicked: boolean = true;
+
+  selectedIndex: number = 0;
+
+  map!: L.Map;
 
   streetMaps = tileLayer(
     'https://api.maptiler.com/maps/streets/{z}/{x}/{y}.png?key=onreaGxJVRblaqf1qWWa',
@@ -141,23 +117,10 @@ export class AppComponent implements OnInit, AfterViewInit {
     maxBounds: this.germanyBounds,
   };
 
-  constructor(private roadsService: RoadsService) {}
-
-  getRoadworksColumnValues(): string[] {
-    return this.roadworksColumns.map((column) => column.value);
-  }
-
-  getClosureColumnValues(): string[] {
-    return this.closureColumns.map((column) => column.value);
-  }
-
-  getWarningColumnValues(): string[] {
-    return this.warningColumns.map((column) => column.value);
-  }
-
-  getChargingColumnValues(): string[] {
-    return this.chargingColumns.map((column) => column.value);
-  }
+  constructor(
+    private roadsService: RoadsService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.roadsService.getAllRoads().subscribe((data: any) => {
@@ -165,474 +128,556 @@ export class AppComponent implements OnInit, AfterViewInit {
 
       this.roadworksData.data = [];
       this.closureData.data = [];
-      this.warningsData.data = [];
-      this.chargingData.data = [];
+      // this.warningsData.data = [];
+      // this.chargingData.data = [];
     });
+  }
+
+  onTabChange(event: MatTabChangeEvent): void {
+    this.selectedIndex = event.index;
+  }
+
+  onSelectedRoadChange(event: MatSelectChange): void {
+    this.clearAllMarkers();
+    const selectedRoad = event.value;
+
+    // Emit the selected value to the child component
+    this.roadSelectionChange.emit(selectedRoad);
+  }
+
+  //Clear all markers from map
+  clearAllMarkers(): void {
+    this.markers = [];
+
+    this.clickedRoadworkRows;
+
+    this.germany.clearLayers();
+    this.tableRef.clearSelection();
   }
 
   ngAfterViewInit() {
     // Set the paginator for each table
-    if (this.roadworksPaginator) {
-      this.roadworksData.paginator = this.roadworksPaginator;
-    }
-
-    if (this.closurePaginator) {
-      this.closureData.paginator = this.closurePaginator;
-    }
-
-    if (this.warningsPaginator) {
-      this.warningsData.paginator = this.warningsPaginator;
-    }
-
-    if (this.chargingPaginator) {
-      this.chargingData.paginator = this.chargingPaginator;
-    }
+    // if (this.roadworksPaginator) {
+    //   this.roadworksData.paginator = this.roadworksPaginator;
+    // }
+    // if (this.closurePaginator) {
+    //   this.closureData.paginator = this.closurePaginator;
+    // }
+    // if (this.warningsPaginator) {
+    //   this.warningsData.paginator = this.warningsPaginator;
+    // }
+    // if (this.chargingPaginator) {
+    //   this.chargingData.paginator = this.chargingPaginator;
+    // }
   }
 
-  onRoadworksRowClicked(rowRoadworks: any) {
-    if (this.clickedRoadworkRows.has(rowRoadworks)) {
-      this.clickedRoadworkRows.delete(rowRoadworks);
-      this.removeRoadworksMarker(rowRoadworks.identifier);
-    } else {
-      this.clickedRoadworkRows.add(rowRoadworks);
-      this.getRoadworkDetails(rowRoadworks.identifier);
-    }
-  }
+  // clearSelection() {
+  //   this.roads = [];
+  //   this.markers = [];
+  //   this.roadworksData.data = [];
+  //   this.closureData.data = [];
 
-  onClosureRowClicked(rowClosure: any) {
-    if (this.clickedClosureRows.has(rowClosure)) {
-      this.clickedClosureRows.delete(rowClosure);
+  //   this.clearAllMarkers();
+  // }
 
-      this.removeClosureMarker(rowClosure.identifier);
-    } else {
-      this.clickedClosureRows.add(rowClosure);
-      this.getClosingsDetails(rowClosure.identifier);
-    }
-  }
+  // class CustomMarker extends L.Marker {
+  //   constructor(latlng: L.LatLngExpression, options?: CustomMarkerOptions) {
+  //     super(latlng, options);
+  //   }
+  // }
 
-  onWarningRowClicked(rowWarning: any) {
-    if (this.clickedWarningRows.has(rowWarning)) {
-      this.clickedWarningRows.delete(rowWarning);
+  //roadworksData: MatTableDataSource<any> = new MatTableDataSource<any>([]);
+  //closureData: MatTableDataSource<any> = new MatTableDataSource<any>([]);
+  //warningsData: MatTableDataSource<any> = new MatTableDataSource<any>([]);
+  //chargingData: MatTableDataSource<any> = new MatTableDataSource<any>([]);
 
-      this.removeWarningsMarker(rowWarning.identifier);
-    } else {
-      this.clickedWarningRows.add(rowWarning);
-      this.getWarningsDetails(rowWarning.identifier);
-    }
-  }
+  //@ViewChild('closurePaginator', { static: true })
+  // closurePaginator: MatPaginator | null = null;
+  // @ViewChild('warningsPaginator', { static: true })
+  // warningsPaginator: MatPaginator | null = null;
+  // @ViewChild('chargingPaginator', { static: true })
+  // chargingPaginator: MatPaginator | null = null;
 
-  onChargingRowClicked(rowCharging: any) {
-    if (this.clickedChargingRows.has(rowCharging)) {
-      this.clickedChargingRows.delete(rowCharging);
+  // clickedWarningRows = new Set<any>();
+  // clickedChargingRows = new Set<any>();
 
-      this.removeChargingsMarker(rowCharging.identifier);
-    } else {
-      this.clickedChargingRows.add(rowCharging);
-      this.getChargingDetails(rowCharging.identifier);
-    }
-  }
+  // roadworksColumns: any[] = [
+  //   { name: 'Name', value: 'title' },
+  //   { name: 'Blocked status', value: 'isBlocked' },
+  //   { name: 'Details', value: 'subtitle' },
+  //   { name: 'Starting', value: 'startTimestamp' },
+  // ];
 
-  //Clear all markers from map
-  clearMarkers(): void {
-    this.markers = [];
+  // closureColumns: any[] = [
+  //   { name: 'Name', value: 'title' },
+  //   { name: 'Blocked status', value: 'isBlocked' },
+  //   { name: 'Details', value: 'subtitle' },
+  //   { name: 'Starting', value: 'startTimestamp' },
+  // ];
 
-    //Clear table selection on clear markers
-    this.clickedChargingRows.clear();
-    this.clickedWarningRows.clear();
-    this.clickedClosureRows.clear();
-    this.clickedRoadworkRows.clear();
+  // warningColumns: any[] = [
+  //   { name: 'Name', value: 'title' },
+  //   { name: 'Blocked status', value: 'isBlocked' },
+  //   { name: 'Details', value: 'subtitle' },
+  //   { name: 'Starting', value: 'startTimestamp' },
+  // ];
 
-    this.updateMap();
-  }
+  // chargingColumns: any[] = [
+  //   { name: 'Name', value: 'title' },
+  //   { name: 'Details', value: 'subtitle' },
+  // ];
 
-  clearSelection() {
-    this.selectedRoad = null;
-    this.roadworksData.data = [];
-    this.closureData.data = [];
-    this.warningsData.data = [];
-    this.chargingData.data = [];
-    this.clearMarkers();
-  }
+  // getRoadworksColumnValues(): string[] {
+  //   return this.roadworksColumns.map((column) => column.value);
+  // }
+
+  // getClosureColumnValues(): string[] {
+  //   return this.closureColumns.map((column) => column.value);
+  // }
+
+  // getWarningColumnValues(): string[] {
+  //   return this.warningColumns.map((column) => column.value);
+  // }
+
+  // getChargingColumnValues(): string[] {
+  //   return this.chargingColumns.map((column) => column.value);
+  // }
+
+  // clearRoadworks() {
+  //   // Get the identifiers of markers with type 'roadworks'
+  //   const identifiersToRemove = this.markers
+  //     .filter((marker: any) => marker.options.type === 'roadworks')
+  //     .map((marker: any) => marker.options.identifier);
+
+  //   // Remove markers with type 'roadworks' from the Leaflet layer group
+  //   this.germany.eachLayer((layer: any) => {
+  //     if (layer.options.type === 'roadworks') {
+  //       this.germany.removeLayer(layer);
+  //     }
+  //   });
+
+  //   // Update the array used for the table display (if needed)
+  //   this.roadworksData.data = this.roadworksData.data.filter(
+  //     (roadwork: any) => !identifiersToRemove.includes(roadwork.identifier)
+  //   );
+
+  //   // Remove markers with type 'roadworks' from the array
+  //   this.markers = this.markers.filter(
+  //     (marker: any) => marker.options.type !== 'roadworks'
+  //   );
+
+  //   // Log the identifiers (optional)
+  //   console.log('Identifiers to remove:', identifiersToRemove);
+  // }
+
+  // clearClosures() {
+  //   // Get the identifiers of markers with type 'closing'
+  //   const identifiersToRemove = this.markers
+  //     .filter((marker: any) => marker.options.type === 'closing')
+  //     .map((marker: any) => marker.options.identifier);
+
+  //   // Remove markers with type 'closing' from the Leaflet layer group
+  //   this.germany.eachLayer((layer: any) => {
+  //     if (layer.options.type === 'closing') {
+  //       this.germany.removeLayer(layer);
+  //     }
+  //   });
+
+  //   // Remove markers with type 'closing' from the array
+  //   this.markers = this.markers.filter(
+  //     (marker: any) => marker.options.type !== 'closing'
+  //   );
+
+  //   // Log the identifiers (optional)
+  //   console.log('Identifiers to remove:', identifiersToRemove);
+  // }
+
+  // onRoadworksRowClicked(rowRoadworks: any) {
+  //   if (this.clickedRoadworkRows.has(rowRoadworks)) {
+  //     this.clickedRoadworkRows.delete(rowRoadworks);
+  //     this.removeRoadworksMarker(rowRoadworks.identifier);
+  //   } else {
+  //     this.clickedRoadworkRows.add(rowRoadworks);
+  //     this.getRoadworkDetails(rowRoadworks.identifier);
+  //   }
+  // }
+
+  // onClosureRowClicked(rowClosure: any) {
+  //   if (this.clickedClosureRows.has(rowClosure)) {
+  //     this.clickedClosureRows.delete(rowClosure);
+
+  //     this.removeClosureMarker(rowClosure.identifier);
+  //   } else {
+  //     this.clickedClosureRows.add(rowClosure);
+  //     this.getClosingsDetails(rowClosure.identifier);
+  //   }
+  // }
+
+  // onWarningRowClicked(rowWarning: any) {
+  //   if (this.clickedWarningRows.has(rowWarning)) {
+  //     this.clickedWarningRows.delete(rowWarning);
+
+  //     this.removeWarningsMarker(rowWarning.identifier);
+  //   } else {
+  //     this.clickedWarningRows.add(rowWarning);
+  //     this.getWarningsDetails(rowWarning.identifier);
+  //   }
+  // }
+
+  // onChargingRowClicked(rowCharging: any) {
+  //   if (this.clickedChargingRows.has(rowCharging)) {
+  //     this.clickedChargingRows.delete(rowCharging);
+
+  //     this.removeChargingsMarker(rowCharging.identifier);
+  //   } else {
+  //     this.clickedChargingRows.add(rowCharging);
+  //     this.getChargingDetails(rowCharging.identifier);
+  //   }
+  // }
 
   //Remove markers
-  removeRoadworksMarker(roadworkId: string) {
-    // Identify the roadworks marker in the array based on the unique identifier
-    const markerIndex = this.markers.findIndex(
-      (marker) =>
-        (marker.options as CustomMarkerOptions).identifier === roadworkId
-    );
+  // removeRoadworksMarker(roadworkId: string) {
+  //   // Identify the roadworks marker in the array based on the unique identifier
+  //   const markerIndex = this.markers.findIndex(
+  //     (marker) =>
+  //       (marker.options as CustomMarkerOptions).identifier === roadworkId
+  //   );
 
-    if (markerIndex >= 0) {
-      // Remove the roadworks marker from the Leaflet layer group
-      const removedMarker = this.markers.splice(markerIndex, 1)[0];
-      this.germany.removeLayer(removedMarker);
+  //   if (markerIndex >= 0) {
+  //     // Remove the roadworks marker from the Leaflet layer group
+  //     const removedMarker = this.markers.splice(markerIndex, 1)[0];
+  //     this.germany.removeLayer(removedMarker);
 
-      this.updateMap();
-    }
-  }
+  //     this.updateMap();
+  //   }
+  // }
 
-  clearRoadworks() {
-    this.roadworksData.data.forEach((roadwork) => {
-      this.removeRoadworksMarker(roadwork.identifier);
-    });
+  // removeClosureMarker(closureId: string) {
+  //   // Identify the roadworks marker in the array based on the unique identifier
+  //   const markerIndex = this.markers.findIndex(
+  //     (marker) =>
+  //       (marker.options as CustomMarkerOptions).identifier === closureId
+  //   );
 
-    this.clickedRoadworkRows.clear();
-  }
+  //   if (markerIndex >= 0) {
+  //     // Remove the roadworks marker from the Leaflet layer group
+  //     const removedMarker = this.markers.splice(markerIndex, 1)[0];
+  //     this.germany.removeLayer(removedMarker);
 
-  clearClosures() {
-    this.closureData.data.forEach((closure) => {
-      this.removeClosureMarker(closure.identifier);
-    });
+  //     this.updateMap();
+  //   }
+  // }
 
-    this.clickedClosureRows.clear();
-  }
+  // clearRoadworks() {
+  //   this.roadworksData.data.forEach((roadwork) => {
+  //     this.removeRoadworksMarker(roadwork.identifier);
+  //   });
 
-  clearWarnings() {
-    this.warningsData.data.forEach((warning) => {
-      this.removeWarningsMarker(warning.identifier);
-    });
+  //   this.clickedRoadworkRows.clear();
+  // }
 
-    this.clickedWarningRows.clear();
-  }
+  // clearWarnings() {
+  //   this.warningsData.data.forEach((warning) => {
+  //     this.removeWarningsMarker(warning.identifier);
+  //   });
 
-  clearCharging() {
-    this.chargingData.data.forEach((charging) => {
-      this.removeChargingsMarker(charging.identifier);
-    });
+  //   this.clickedWarningRows.clear();
+  // }
 
-    this.clickedChargingRows.clear();
-  }
+  // clearCharging() {
+  //   this.chargingData.data.forEach((charging) => {
+  //     this.removeChargingsMarker(charging.identifier);
+  //   });
 
-  removeClosureMarker(closureId: string) {
-    // Identify the roadworks marker in the array based on the unique identifier
-    const markerIndex = this.markers.findIndex(
-      (marker) =>
-        (marker.options as CustomMarkerOptions).identifier === closureId
-    );
+  //   this.clickedChargingRows.clear();
+  // }
 
-    if (markerIndex >= 0) {
-      // Remove the roadworks marker from the Leaflet layer group
-      const removedMarker = this.markers.splice(markerIndex, 1)[0];
-      this.germany.removeLayer(removedMarker);
+  // removeWarningsMarker(warningId: string) {
+  //   // Identify the roadworks marker in the array based on the unique identifier
+  //   const markerIndex = this.markers.findIndex(
+  //     (marker) =>
+  //       (marker.options as CustomMarkerOptions).identifier === warningId
+  //   );
 
-      this.updateMap();
-    }
-  }
+  //   if (markerIndex >= 0) {
+  //     // Remove the roadworks marker from the Leaflet layer group
+  //     const removedMarker = this.markers.splice(markerIndex, 1)[0];
+  //     this.germany.removeLayer(removedMarker);
 
-  removeWarningsMarker(warningId: string) {
-    // Identify the roadworks marker in the array based on the unique identifier
-    const markerIndex = this.markers.findIndex(
-      (marker) =>
-        (marker.options as CustomMarkerOptions).identifier === warningId
-    );
+  //     this.updateMap();
+  //   }
+  // }
 
-    if (markerIndex >= 0) {
-      // Remove the roadworks marker from the Leaflet layer group
-      const removedMarker = this.markers.splice(markerIndex, 1)[0];
-      this.germany.removeLayer(removedMarker);
+  // removeChargingsMarker(chargingId: string) {
+  //   // Identify the charging marker in the array based on the unique identifier
+  //   const markerIndex = this.markers.findIndex(
+  //     (marker) =>
+  //       (marker.options as CustomMarkerOptions).identifier === chargingId
+  //   );
 
-      this.updateMap();
-    }
-  }
+  //   if (markerIndex >= 0) {
+  //     // Remove the charging marker from the Leaflet layer group
+  //     const removedMarker = this.markers.splice(markerIndex, 1)[0];
+  //     this.germany.removeLayer(removedMarker);
 
-  removeChargingsMarker(chargingId: string) {
-    // Identify the charging marker in the array based on the unique identifier
-    const markerIndex = this.markers.findIndex(
-      (marker) =>
-        (marker.options as CustomMarkerOptions).identifier === chargingId
-    );
-
-    if (markerIndex >= 0) {
-      // Remove the charging marker from the Leaflet layer group
-      const removedMarker = this.markers.splice(markerIndex, 1)[0];
-      this.germany.removeLayer(removedMarker);
-
-      this.updateMap();
-    }
-  }
+  //     this.updateMap();
+  //   }
+  // }
 
   //Get details
-  getRoadworkDetails(roadworkId: string) {
-    this.roadsService.getRoadworkDetails(roadworkId).subscribe((data: any) => {
-      const coordinates: LatLngTuple = [
-        parseFloat(data.coordinate.lat),
-        parseFloat(data.coordinate.long),
-      ];
+  // getRoadworkDetails(roadworkId: string) {
+  //   this.roadsService.getRoadworkDetails(roadworkId).subscribe((data: any) => {
+  //     const coordinates: LatLngTuple = [
+  //       parseFloat(data.coordinate.lat),
+  //       parseFloat(data.coordinate.long),
+  //     ];
 
-      // Check if a marker with the same coordinates already exists
-      const existingMarker = this.findExistingMarker(coordinates);
+  //     // Check if a marker with the same coordinates already exists
+  //     const existingMarker = this.findExistingMarker(coordinates);
 
-      if (existingMarker) {
-        // Update the position of the existing marker if needed
-        existingMarker.setLatLng(coordinates);
-      } else {
-        // Create a new marker
-        const newMarker = marker(coordinates, {
-          icon: icon({
-            iconSize: [38, 61],
-            iconAnchor: [13, 41],
-            iconUrl: 'assets/img/markers/marker-roadworks.svg',
-          }),
-          identifier: roadworkId,
-        } as CustomMarkerOptions);
+  //     if (existingMarker) {
+  //       // Update the position of the existing marker if needed
+  //       existingMarker.setLatLng(coordinates);
+  //     } else {
+  //       // Create a new marker
+  //       const newMarker = marker(coordinates, {
+  //         icon: icon({
+  //           iconSize: [38, 61],
+  //           iconAnchor: [13, 41],
+  //           iconUrl: 'assets/img/markers/marker-roadworks.svg',
+  //         }),
+  //         identifier: roadworkId,
+  //       } as CustomMarkerOptions);
 
-        // Add the new marker to the array and display details on click
-        this.markers.push(newMarker);
-        newMarker.bindPopup(`
-          <img src="assets/img/icons/roadworks-icon.svg">
-          <hr>
-          <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
-          <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
-          <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
-          <hr>
-          <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
-          <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
-        `);
-      }
+  //       // Add the new marker to the array and display details on click
+  //       this.markers.push(newMarker);
+  //       newMarker.bindPopup(`
+  //         <img src="assets/img/icons/roadworks-icon.svg">
+  //         <hr>
+  //         <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
+  //         <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
+  //         <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
+  //         <hr>
+  //         <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
+  //         <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
+  //       `);
+  //     }
 
-      // Update the map with the markers
-      this.updateMap();
-    });
-  }
+  //     // Update the map with the markers
+  //     this.updateMap();
+  //   });
+  // }
 
-  getClosingsDetails(closureId: string) {
-    this.roadsService.getClosingsDetails(closureId).subscribe((data: any) => {
-      const coordinates: LatLngTuple = [
-        parseFloat(data.coordinate.lat),
-        parseFloat(data.coordinate.long),
-      ];
+  // getClosingsDetails(closureId: string) {
+  //   this.roadsService.getClosingsDetails(closureId).subscribe((data: any) => {
+  //     const coordinates: LatLngTuple = [
+  //       parseFloat(data.coordinate.lat),
+  //       parseFloat(data.coordinate.long),
+  //     ];
 
-      // Check if a marker with the same coordinates already exists
-      const existingMarker = this.findExistingMarker(coordinates);
+  //     // Check if a marker with the same coordinates already exists
+  //     const existingMarker = this.findExistingMarker(coordinates);
 
-      if (existingMarker) {
-        // Update the position of the existing marker if needed
-        existingMarker.setLatLng(coordinates);
-      } else {
-        // Create a new marker
-        const newMarker = marker(coordinates, {
-          icon: icon({
-            iconSize: [38, 61],
-            iconAnchor: [13, 41],
-            iconUrl: 'assets/img/markers/marker-closure.svg',
-          }),
-          identifier: closureId,
-        } as CustomMarkerOptions);
+  //     if (existingMarker) {
+  //       // Update the position of the existing marker if needed
+  //       existingMarker.setLatLng(coordinates);
+  //     } else {
+  //       // Create a new marker
+  //       const newMarker = marker(coordinates, {
+  //         icon: icon({
+  //           iconSize: [38, 61],
+  //           iconAnchor: [13, 41],
+  //           iconUrl: 'assets/img/markers/marker-closure.svg',
+  //         }),
+  //         identifier: closureId,
+  //       } as CustomMarkerOptions);
 
-        // Add the new marker to the array and display details on click
-        this.markers.push(newMarker);
-        newMarker.bindPopup(`
-          <img src="assets/img/icons/closure-icon.svg">
-          <hr>
-          <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
-          <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
-          <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
-          <hr>
-          <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
-          <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
-        `);
-      }
+  //       // Add the new marker to the array and display details on click
+  //       this.markers.push(newMarker);
+  //       newMarker.bindPopup(`
+  //         <img src="assets/img/icons/closure-icon.svg">
+  //         <hr>
+  //         <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
+  //         <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
+  //         <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
+  //         <hr>
+  //         <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
+  //         <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
+  //       `);
+  //     }
 
-      // Update the map with the markers
-      this.updateMap();
-    });
-  }
+  //     // Update the map with the markers
+  //     this.updateMap();
+  //   });
+  // }
 
-  getWarningsDetails(warningId: string) {
-    this.roadsService.getWarningsDetails(warningId).subscribe((data: any) => {
-      const coordinates: LatLngTuple = [
-        parseFloat(data.coordinate.lat),
-        parseFloat(data.coordinate.long),
-      ];
+  // getWarningsDetails(warningId: string) {
+  //   this.roadsService.getWarningsDetails(warningId).subscribe((data: any) => {
+  //     const coordinates: LatLngTuple = [
+  //       parseFloat(data.coordinate.lat),
+  //       parseFloat(data.coordinate.long),
+  //     ];
 
-      // Check if a marker with the same coordinates already exists
-      const existingMarker = this.findExistingMarker(coordinates);
+  //     // Check if a marker with the same coordinates already exists
+  //     const existingMarker = this.findExistingMarker(coordinates);
 
-      if (existingMarker) {
-        // Update the position of the existing marker if needed
-        existingMarker.setLatLng(coordinates);
-      } else {
-        // Create a new marker
-        const newMarker = marker(coordinates, {
-          icon: icon({
-            iconSize: [38, 61],
-            iconAnchor: [13, 41],
-            iconUrl: 'assets/img/markers/marker-warning.svg',
-          }),
-          identifier: warningId,
-        } as CustomMarkerOptions);
+  //     if (existingMarker) {
+  //       // Update the position of the existing marker if needed
+  //       existingMarker.setLatLng(coordinates);
+  //     } else {
+  //       // Create a new marker
+  //       const newMarker = marker(coordinates, {
+  //         icon: icon({
+  //           iconSize: [38, 61],
+  //           iconAnchor: [13, 41],
+  //           iconUrl: 'assets/img/markers/marker-warning.svg',
+  //         }),
+  //         identifier: warningId,
+  //       } as CustomMarkerOptions);
 
-        // Add the new marker to the array and display details on click
-        this.markers.push(newMarker);
-        newMarker.bindPopup(`
-          <img src="assets/img/icons/warning-icon.svg">
-          <hr>
-          <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
-          <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
-          <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
-          <hr>
-          <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
-          <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
-        `);
-      }
+  //       // Add the new marker to the array and display details on click
+  //       this.markers.push(newMarker);
+  //       newMarker.bindPopup(`
+  //         <img src="assets/img/icons/warning-icon.svg">
+  //         <hr>
+  //         <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
+  //         <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
+  //         <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
+  //         <hr>
+  //         <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
+  //         <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
+  //       `);
+  //     }
 
-      // Update the map with the markers
-      this.updateMap();
-    });
-  }
+  //     // Update the map with the markers
+  //     this.updateMap();
+  //   });
+  // }
 
-  getChargingDetails(chargingId: string) {
-    this.roadsService.getWarningsDetails(chargingId).subscribe((data: any) => {
-      const coordinates: LatLngTuple = [
-        parseFloat(data.coordinate.lat),
-        parseFloat(data.coordinate.long),
-      ];
+  // getChargingDetails(chargingId: string) {
+  //   this.roadsService.getWarningsDetails(chargingId).subscribe((data: any) => {
+  //     const coordinates: LatLngTuple = [
+  //       parseFloat(data.coordinate.lat),
+  //       parseFloat(data.coordinate.long),
+  //     ];
 
-      // Check if a marker with the same coordinates already exists
-      const existingMarker = this.findExistingMarker(coordinates);
+  //     // Check if a marker with the same coordinates already exists
+  //     const existingMarker = this.findExistingMarker(coordinates);
 
-      if (existingMarker) {
-        // Update the position of the existing marker if needed
-        existingMarker.setLatLng(coordinates);
-      } else {
-        // Create a new marker
-        const newMarker = marker(coordinates, {
-          icon: icon({
-            iconSize: [38, 61],
-            iconAnchor: [13, 41],
-            iconUrl: 'assets/img/markers/marker-charging.svg',
-          }),
-          identifier: chargingId,
-        } as CustomMarkerOptions);
+  //     if (existingMarker) {
+  //       // Update the position of the existing marker if needed
+  //       existingMarker.setLatLng(coordinates);
+  //     } else {
+  //       // Create a new marker
+  //       const newMarker = marker(coordinates, {
+  //         icon: icon({
+  //           iconSize: [38, 61],
+  //           iconAnchor: [13, 41],
+  //           iconUrl: 'assets/img/markers/marker-charging.svg',
+  //         }),
+  //         identifier: chargingId,
+  //       } as CustomMarkerOptions);
 
-        // Add the new marker to the array and display details on click
-        this.markers.push(newMarker);
-        newMarker.bindPopup(`
-            <img src="assets/img/icons/charging-icon.svg">
-            <hr>
-            <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
-            <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
-            <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
-            <hr>
-            <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
-            <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
-          `);
-      }
+  //       // Add the new marker to the array and display details on click
+  //       this.markers.push(newMarker);
+  //       newMarker.bindPopup(`
+  //           <img src="assets/img/icons/charging-icon.svg">
+  //           <hr>
+  //           <h2 style="font-family: 'Raleway', sans-serif;"">${data.title}</h2>
+  //           <h3 style="color: #2f3542; font-family: 'Raleway', sans-serif;">${data.subtitle}</h3><br>
+  //           <h4 style="color: #7f8c8d; font-family: 'Raleway', sans-serif;">${data.description[5]}</h4>
+  //           <hr>
+  //           <h4 style="color: #e74c3c; font-family: 'Raleway', sans-serif;">${data.description[0]}</h4>
+  //           <h4 style="color: #27ae60; font-family: 'Raleway', sans-serif;">${data.description[1]}</h4>
+  //         `);
+  //     }
 
-      // Update the map with the markers
-      this.updateMap();
-    });
-  }
+  //     // Update the map with the markers
+  //     this.updateMap();
+  //   });
+  // }
 
   // Find an existing marker with the same coordinates
-  findExistingMarker(coordinates: LatLngTuple): L.Marker | undefined {
-    return this.markers.find((marker) =>
-      marker.getLatLng().equals(coordinates)
-    );
-  }
+  // findExistingMarker(coordinates: LatLngTuple): L.Marker | undefined {
+  //   return this.markers.find((marker) =>
+  //     marker.getLatLng().equals(coordinates)
+  //   );
+  // }
 
-  updateMap() {
-    // Clear existing markers
-    this.germany.clearLayers();
+  // onRoadSelectionChangeOLD() {
+  //   if (this.selectedRoad) {
+  //     //this.getAllRoadworks(this.selectedRoad);
+  //     // this.getAllClosedRoads(this.selectedRoad);
+  //     // this.getAllWarnings(this.selectedRoad);
+  //     // this.getAllCharginsStations(this.selectedRoad);
+  //     // this.getAllWebcams(this.selectedRoad);
+  //     // this.getAllPakringAreas(this.selectedRoad);
+  //   }
+  // }
 
-    // Add all markers to the layer group
-    this.markers.forEach((marker) => {
-      this.germany.addLayer(marker);
-    });
-  }
+  // private getAllRoadworks(selectedRoad: string) {
+  //   this.roadsService.getAllRoadworks(selectedRoad).subscribe((data: any) => {
+  //     this.roadworksData.data = data.roadworks;
 
-  //Format date to specific format  "hh.mm DD.mmm.YY" format
-  //To Do: Use pipe!
-  private formatDate(date: Date): string {
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    const monthAbbrev = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    const year = date.getFullYear().toString().slice(-2);
+  //     // Update isBlocked property to 'YES' or 'NO'
+  //     this.roadworksData.data.forEach((roadwork: any) => {
+  //       roadwork.isBlocked = roadwork.isBlocked ? 'NO' : 'YES';
 
-    return `${hours}.${minutes}h | ${day} ${
-      monthAbbrev[date.getMonth()]
-    } ${year}`;
-  }
+  //       // Date format
+  //       // const startTimestamp = new Date(roadwork.startTimestamp);
+  //       // roadwork.startTimestamp = this.formatDate(startTimestamp);
+  //     });
 
-  // Define our base layers so we can reference them multiple times
+  //     // Log the updated data
+  //     console.log(this.roadworksData.data);
+  //   });
+  // }
 
-  onRoadSelectionChange() {
-    if (this.selectedRoad) {
-      this.getAllRoadworks(this.selectedRoad);
-      this.getAllClosedRoads(this.selectedRoad);
-      this.getAllWarnings(this.selectedRoad);
-      this.getAllCharginsStations(this.selectedRoad);
-      // this.getAllWebcams(this.selectedRoad);
-      // this.getAllPakringAreas(this.selectedRoad);
-    }
-  }
+  // private getAllClosedRoads(selectedRoad: string) {
+  //   this.roadsService.getAllClosedRoads(selectedRoad).subscribe((data: any) => {
+  //     this.closureData.data = data.closure;
 
-  private getAllRoadworks(selectedRoad: string) {
-    this.roadsService.getAllRoadworks(selectedRoad).subscribe((data: any) => {
-      this.roadworksData.data = data.roadworks;
+  //     // Update isBlocked property to 'YES' or 'NO'
+  //     this.closureData.data.forEach((closure: any) => {
+  //       closure.isBlocked = closure.isBlocked ? 'NO' : 'YES';
 
-      // Update isBlocked property to 'YES' or 'NO'
-      this.roadworksData.data.forEach((roadwork: any) => {
-        roadwork.isBlocked = roadwork.isBlocked ? 'NO' : 'YES';
+  //       //Date format
+  //       const startTimestamp = new Date(closure.startTimestamp);
+  //       closure.startTimestamp = this.formatDate(startTimestamp);
+  //     });
+  //   });
+  // }
 
-        // Date format
-        const startTimestamp = new Date(roadwork.startTimestamp);
-        roadwork.startTimestamp = this.formatDate(startTimestamp);
-      });
+  // private getAllWarnings(selectedRoad: string) {
+  //   this.roadsService.getAllWarnings(selectedRoad).subscribe((data) => {
+  //     this.warningsData.data = data.warning;
 
-      // Log the updated data
-      console.log(this.roadworksData.data);
-    });
-  }
-  private getAllClosedRoads(selectedRoad: string) {
-    this.roadsService.getAllClosedRoads(selectedRoad).subscribe((data: any) => {
-      this.closureData.data = data.closure;
+  //     // Update isBlocked property to 'YES' or 'NO'
+  //     this.warningsData.data.forEach((warning: any) => {
+  //       warning.isBlocked = warning.isBlocked ? 'NO' : 'YES';
 
-      // Update isBlocked property to 'YES' or 'NO'
-      this.closureData.data.forEach((closure: any) => {
-        closure.isBlocked = closure.isBlocked ? 'NO' : 'YES';
+  //       //Date format
+  //       const startTimestamp = new Date(warning.startTimestamp);
+  //       warning.startTimestamp = this.formatDate(startTimestamp);
+  //     });
+  //   });
+  // }
 
-        //Date format
-        const startTimestamp = new Date(closure.startTimestamp);
-        closure.startTimestamp = this.formatDate(startTimestamp);
-      });
-    });
-  }
+  // private getAllCharginsStations(selectedRoad: string) {
+  //   this.roadsService.getAllCharginsStations(selectedRoad).subscribe((data) => {
+  //     this.chargingData.data = data.electric_charging_station;
 
-  private getAllWarnings(selectedRoad: string) {
-    this.roadsService.getAllWarnings(selectedRoad).subscribe((data) => {
-      this.warningsData.data = data.warning;
+  //     //console.log(data, 'charging data');
+  //   });
+  // }
 
-      // Update isBlocked property to 'YES' or 'NO'
-      this.warningsData.data.forEach((warning: any) => {
-        warning.isBlocked = warning.isBlocked ? 'NO' : 'YES';
+  // updateMap() {
+  //   // Clear existing markers
+  //   this.germany.clearLayers();
 
-        //Date format
-        const startTimestamp = new Date(warning.startTimestamp);
-        warning.startTimestamp = this.formatDate(startTimestamp);
-      });
-    });
-  }
-
-  private getAllCharginsStations(selectedRoad: string) {
-    this.roadsService.getAllCharginsStations(selectedRoad).subscribe((data) => {
-      this.chargingData.data = data.electric_charging_station;
-
-      //console.log(data, 'charging data');
-    });
-  }
+  //   // Add all markers to the layer group
+  //   this.markers.forEach((marker: any) => {
+  //     this.germany.addLayer(marker);
+  //   });
+  // }
 }

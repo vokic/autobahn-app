@@ -13,22 +13,21 @@
                 <mat-label>Select highway</mat-label>
                 <mat-select
                   [(ngModel)]="selectedRoad"
-                  (selectionChange)="onRoadSelectionChange()"
+                  (selectionChange)="onSelectedRoadChange($event)"
                 >
                   <mat-option *ngFor="let road of roads" [value]="road">{{
                     road
                   }}</mat-option>
                 </mat-select>
               </mat-form-field>
-              <button
+              <!-- <button
                 mat-icon-button
                 matSuffix
-                color="warn"
                 *ngIf="selectedRoad"
                 (click)="clearSelection()"
               >
                 <mat-icon>close</mat-icon>
-              </button>
+              </button> -->
             </div>
           </div>
           <div class="col">
@@ -38,9 +37,8 @@
               <div *ngIf="selectedRoad">
                 <p class="">
                   Selected highway:
-                  <!-- <span class="font-bold">{{ selectedRoad }}</span> -->
+
                   <button mat-flat-button [style.background]="'#0652DD'">
-                    <!-- <mat-icon [style.color]="'white'">shield</mat-icon> -->
                     <h3 [style.color]="'white'">{{ selectedRoad }}</h3>
                   </button>
                 </p>
@@ -54,7 +52,7 @@
               <button
                 mat-flat-button
                 color="warn"
-                (click)="clearMarkers()"
+                (click)="clearAllMarkers()"
                 [disabled]="!markers.length"
               >
                 <mat-icon>wrong_location</mat-icon>
@@ -68,137 +66,76 @@
       <!-- Table -->
       <div class="col-12">
         <div class="text-center border-round-xs surface-100">
-          <mat-tab-group>
+          <mat-tab-group (selectedTabChange)="onTabChange($event)">
             <!-- ROADWORKS -->
-            <mat-tab>
+            <mat-tab id="roadworksTab">
+              <!-- Add an *ngIf to conditionally render content -->
               <ng-template mat-tab-label class="flex justify-content-between">
                 <mat-icon fontIcon="handyman"></mat-icon>
-                <p class="ml-2">
-                  Roadworks
-                  <span
-                    matTooltip="Total number of Roadworks on this roads"
-                    *ngIf="roadworksData.data.length > 0"
-                    >(<b>{{ roadworksData.data.length }}</b
-                    >)</span
-                  >
-                </p>
-
-                <mat-icon
+                <span class="ml-2">Roadworks</span>
+                <div
                   *ngIf="roadworksData.data.length > 0"
-                  style="font-size: 16px"
-                  class="ml-2"
-                  matTooltip="Remove only Roarworks markers"
-                  (click)="clearRoadworks()"
-                  >close</mat-icon
+                  [matBadge]="roadworksData.data.length"
+                  matBadgeOverlap="false"
                 >
+                  &nbsp;
+                </div>
+
+                <!-- <span
+                    matTooltip="Total number of Closures on this road"
+                    *ngIf="roadworksData.data.length > 0"
+                  >
+                    (<b>{{ roadworksData.data.length }}</b
+                    >)
+                  </span> -->
               </ng-template>
-              <table
-                mat-table
-                [dataSource]="roadworksData"
-                class="mat-elevation-z8"
-              >
-                <ng-container
-                  *ngFor="let column of roadworksColumns"
-                  [matColumnDef]="column.value"
-                >
-                  <th mat-header-cell *matHeaderCellDef>
-                    {{ column.name | titlecase }}
-                  </th>
-                  <td mat-cell *matCellDef="let element">
-                    {{ element[column.value] }}
-                  </td>
-                </ng-container>
-
-                <tr
-                  mat-header-row
-                  *matHeaderRowDef="getRoadworksColumnValues()"
-                ></tr>
-
-                <tr
-                  class="cursor-pointer"
-                  mat-row
-                  (click)="onRoadworksRowClicked(rowRoadwork)"
-                  [class.row-is-clicked]="clickedRoadworkRows.has(rowRoadwork)"
-                  *matRowDef="
-                    let rowRoadwork;
-                    columns: getRoadworksColumnValues()
-                  "
-                ></tr>
-              </table>
-
-              <mat-paginator
-                #roadworksPaginator
-                [pageSize]="5"
-                [pageSizeOptions]="[5, 10]"
-                showFirstLastButtons
-                showFirstLastButtons
-              ></mat-paginator>
+              <app-table
+                #tableComponentRef
+                [germany]="germany"
+                [clickedRoadworkRows]="clickedRoadworkRows"
+                [markers]="markers"
+                [selectedRoad]="selectedRoad"
+                [roads]="roads"
+                [roadworksData]="roadworksData"
+                [selectedIndex]="selectedIndex"
+              ></app-table>
             </mat-tab>
 
             <!-- CLOSURES -->
-            <mat-tab>
+            <mat-tab id="closuresTab">
+              <!-- Add an *ngIf to conditionally render content -->
               <ng-template mat-tab-label class="flex justify-content-between">
                 <mat-icon fontIcon="remove_road"></mat-icon>
-                <p class="ml-2">
-                  Closures
-                  <span
-                    matTooltip="Total number of Closures on this road"
-                    *ngIf="closureData.data.length > 0"
-                    >(<b>{{ closureData.data.length }}</b
-                    >)</span
-                  >
-                </p>
-
-                <mat-icon
+                <span class="ml-2">Closed Roads</span>
+                <div
                   *ngIf="closureData.data.length > 0"
+                  [matBadge]="closureData.data.length"
+                  matBadgeOverlap="false"
+                >
+                  &nbsp;
+                </div>
+                <!-- <mat-icon
+                  #tableComponent
                   style="font-size: 16px"
                   class="ml-2"
-                  matTooltip="Remove only Closure markers"
-                  (click)="clearClosures()"
+                  matTooltip="Remove only Closed roads markers"
                   >close</mat-icon
-                >
+                > -->
               </ng-template>
-
-              <table
-                mat-table
-                [dataSource]="closureData"
-                class="mat-elevation-z8"
-              >
-                <ng-container
-                  *ngFor="let column of closureColumns"
-                  [matColumnDef]="column.value"
-                >
-                  <th mat-header-cell *matHeaderCellDef>
-                    {{ column.name | titlecase }}
-                  </th>
-                  <td mat-cell *matCellDef="let element">
-                    {{ element[column.value] }}
-                  </td>
-                </ng-container>
-
-                <tr
-                  mat-header-row
-                  *matHeaderRowDef="getClosureColumnValues()"
-                ></tr>
-
-                <tr
-                  class="cursor-pointer"
-                  mat-row
-                  (click)="onClosureRowClicked(rowClosure)"
-                  [class.row-is-clicked]="clickedClosureRows.has(rowClosure)"
-                  *matRowDef="let rowClosure; columns: getClosureColumnValues()"
-                ></tr>
-              </table>
-              <mat-paginator
-                #closurePaginator
-                [pageSize]="5"
-                [pageSizeOptions]="[5, 10]"
-                showFirstLastButtons
-              ></mat-paginator>
+              <app-table
+                #tableComponentRef
+                [germany]="germany"
+                [clickedClosureRows]="clickedClosureRows"
+                [markers]="markers"
+                [selectedRoad]="selectedRoad"
+                [roads]="roads"
+                [closureData]="closureData"
+                [selectedIndex]="selectedIndex"
+              ></app-table>
             </mat-tab>
 
             <!-- WARNINGS -->
-            <mat-tab>
+            <!-- <mat-tab>
               <ng-template mat-tab-label class="flex justify-content-between">
                 <mat-icon fontIcon="warning"></mat-icon>
                 <p class="ml-2">
@@ -256,10 +193,10 @@
                 [pageSizeOptions]="[5, 10]"
                 showFirstLastButtons
               ></mat-paginator>
-            </mat-tab>
+            </mat-tab> -->
 
             <!-- CHARGING STATIONS -->
-            <mat-tab>
+            <!-- <mat-tab>
               <ng-template mat-tab-label class="flex justify-content-between">
                 <mat-icon fontIcon="ev_station"></mat-icon>
                 <p class="ml-2">
@@ -321,7 +258,7 @@
                 [pageSizeOptions]="[5, 10]"
                 showFirstLastButtons
               ></mat-paginator>
-            </mat-tab>
+            </mat-tab> -->
           </mat-tab-group>
         </div>
       </div>
@@ -331,6 +268,7 @@
   <div class="col-6">
     <div class="text-center border-round-xs h-full surface-100 font-bold">
       <div
+        id="map"
         class="map-container"
         leaflet
         [leafletOptions]="options"

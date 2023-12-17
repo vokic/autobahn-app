@@ -1,0 +1,35 @@
+<div>
+  <table
+    #tableRef
+    mat-table
+    [dataSource]="selectedDataSource"
+    class="mat-elevation-z8"
+  >
+    <ng-container
+      *ngFor="let column of unifiedCols"
+      [matColumnDef]="column.value"
+    >
+      <!-- Use column.name for the header label -->
+      <th mat-header-cell *matHeaderCellDef>{{ column.name }}</th>
+      <!-- Use element[column.value] to access the corresponding property in the data -->
+      <td mat-cell *matCellDef="let element">{{ element[column.value] }}</td>
+    </ng-container>
+
+    <!-- Use unifiedCols.value for column definition in matHeaderRowDef -->
+    <tr mat-header-row *matHeaderRowDef="getColumnValues()"></tr>
+
+    <tr
+      class="cursor-pointer"
+      mat-row
+      [class.row-is-clicked]="selectedRows.includes(selectedData)"
+      (click)="onRowClicked(selectedData)"
+      *matRowDef="let selectedData; columns: getColumnValues()"
+    ></tr>
+  </table>
+</div>
+
+<mat-paginator
+  [pageSize]="5"
+  [pageSizeOptions]="[5, 10]"
+  showFirstLastButtons
+></mat-paginator>
